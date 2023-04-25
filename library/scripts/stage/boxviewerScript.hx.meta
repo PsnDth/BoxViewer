@@ -1,0 +1,18 @@
+{
+  "export": true,
+  "guid": "27b1e714-7892-4aaf-8acd-60cae1be9e0c",
+  "id": "boxviewerScript",
+  "language": "hscript",
+  "pluginMetadata": {
+    "com.fraymakers.FraymakersMetadata": {
+      "objectType": "STAGE",
+      "version": "0.1.2"
+    }
+  },
+  "plugins": [
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "tags": [
+  ],
+  "version": 1
+}

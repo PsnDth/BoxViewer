@@ -1,0 +1,5 @@
+// Hitbox stats
+{
+	idle: {},
+    death: {},
+}

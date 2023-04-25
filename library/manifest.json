@@ -1,0 +1,47 @@
+{
+  "resourceId": "boxviewer",
+  "content": [{
+    "id": "boxviewer",
+    "name": "Box Viewer",
+    "description": "Stage for viewing and experimenting with hitbox/hurtbox/etc. data",
+    "type": "stage",
+    "objectStatsId": "boxviewerStageStats",
+    "scriptId": "boxviewerScript",
+    "music": [],
+    "metadata": {
+      "stage":{
+        "hazardVariation": "local::boxviewer.boxviewer"
+      },
+      "ui":{
+        "entityId":"menu",
+        "render":{
+          "animation":"full",
+          "animation_hazard":"full"
+        },
+        "css":{
+          "animation":"css",
+          "animation_hazard":"css"
+        }
+      }
+    }
+  },{
+    "id": "boxviewerDummy",
+    "type": "projectile",
+    "objectStatsId": "boxviewerDummyStats",
+    "animationStatsId": "boxviewerDummyAnimationStats",
+    "hitboxStatsId": "boxviewerDummyHitboxStats",
+    "scriptId": "boxviewerDummyScript"
+  },{
+    "id": "boxviewerButton",
+    "type": "projectile",
+    "objectStatsId": "boxviewerButtonStats",
+    "animationStatsId": "boxviewerButtonAnimationStats",
+    "hitboxStatsId": "boxviewerButtonHitboxStats",
+    "scriptId": "boxviewerButtonScript"
+  },{
+    "id": "boxviewerElevator",
+    "type": "structure",
+    "objectStatsId": "boxviewerElevatorStats",
+    "scriptId": "boxviewerElevatorScript"
+  }]
+}

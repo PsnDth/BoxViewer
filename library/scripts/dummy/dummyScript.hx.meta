@@ -1,0 +1,18 @@
+{
+  "export": true,
+  "guid": "65d10b94-61b2-48a3-ba30-c22212b5b7db",
+  "id": "boxviewerDummyScript",
+  "language": "hscript",
+  "pluginMetadata": {
+    "com.fraymakers.FraymakersMetadata": {
+      "objectType": "PROJECTILE",
+      "version": "0.1.2"
+    }
+  },
+  "plugins": [
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "tags": [
+  ],
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "autoHurtboxPrefix": null,
+  "autoKeyframeOffsetX": 0,
+  "autoKeyframeOffsetY": 0,
+  "defaultCollisionBodyLayerAlpha": 0.5,
+  "defaultCollisionBodyLayerColor": "0xffa500",
+  "defaultCollisionBodyLayerFoot": 0,
+  "defaultCollisionBodyLayerHead": 100,
+  "defaultCollisionBodyLayerHipWidth": 50,
+  "defaultCollisionBodyLayerHipXOffset": 0,
+  "defaultCollisionBodyLayerHipYOffset": 0,
+  "frame_rate": 60,
+  "paletteShaderMode": "RG_MAP",
+  "pluginMetadata": {
+  },
+  "plugins": [
+    "com.fraymakers.ContentExporter",
+    "com.fraymakers.FraymakersTypes",
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "publishFolders": [
+    {
+      "id": "build0",
+      "path": "../../../../../Program Files (x86)/Steam/steamapps/common/Fraymakers/custom/boxviewer"
+    }
+  ],
+  "snapToPixel": true,
+  "templateDescription": "Sample stage project for Fraymakers.",
+  "templateName": "Fraymakers Stage Template",
+  "templateVersion": "0.1.0",
+  "version": 12
+}

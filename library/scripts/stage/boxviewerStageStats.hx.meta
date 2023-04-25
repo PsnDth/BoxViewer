@@ -1,0 +1,13 @@
+{
+  "export": true,
+  "guid": "b5e488d1-2fdc-4a56-a81f-85feaeacc364",
+  "id": "boxviewerStageStats",
+  "language": "hscript",
+  "pluginMetadata": {
+  },
+  "plugins": [
+  ],
+  "tags": [
+  ],
+  "version": 1
+}

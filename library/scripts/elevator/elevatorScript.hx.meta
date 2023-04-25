@@ -1,0 +1,18 @@
+{
+  "export": true,
+  "guid": "72059762-abf0-4bb6-915c-010cb9bcb612",
+  "id": "boxviewerElevatorScript",
+  "language": "hscript",
+  "pluginMetadata": {
+    "com.fraymakers.FraymakersMetadata": {
+      "objectType": "LINE_SEGMENT_STRUCTURE",
+      "version": "0.1.2"
+    }
+  },
+  "plugins": [
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "tags": [
+  ],
+  "version": 1
+}

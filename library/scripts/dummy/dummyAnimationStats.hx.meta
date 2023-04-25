@@ -1,0 +1,18 @@
+{
+  "export": true,
+  "guid": "fef656f8-b281-4d5d-b4ee-4fad41760e39",
+  "id": "boxviewerDummyAnimationStats",
+  "language": "hscript",
+  "pluginMetadata": {
+    "com.fraymakers.FraymakersMetadata": {
+      "objectType": "STAGE",
+      "version": "0.1.2"
+    }
+  },
+  "plugins": [
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "tags": [
+  ],
+  "version": 1
+}
