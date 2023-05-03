@@ -1,5 +1,4 @@
 // Stats for Template Stage
-
 {
 	spriteContent: self.getResource().getContent("boxviewer"),
 	animationId: "stage",
@@ -9,25 +8,25 @@
 			id: "0",
 			maskSpriteContent: self.getResource().getContent("boxviewer"),
 			maskAnimationId: "shadowMaskFront",
-			color:0x40000000,
+			color: 0x40000000,
 			foreground: true
 		},
 		{
 			id: "1",
 			maskSpriteContent: self.getResource().getContent("boxviewer"),
 			maskAnimationId: "shadowMask",
-			color:0x40000000,
+			color: 0x40000000,
 			foreground: false
 		}
 	],
 	camera: {
-		startX : 0,
-		startY : 43,
-		zoomX : 0,
-		zoomY : 0,
-		camEaseRate : 1 / 11,
-		camZoomRate : 1 / 15,
-		minZoomHeight : 360,
+		startX: 0,
+		startY: 43,
+		zoomX: 0,
+		zoomY: 0,
+		camEaseRate: 1 / 11,
+		camZoomRate: 1 / 15,
+		minZoomHeight: 360,
 		initialHeight: 360,
 		initialWidth: 640,
 		backgrounds: [

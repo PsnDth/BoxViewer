@@ -25,6 +25,7 @@
         "9285a071-2431-4940-b935-4e2da0c861a6",
         "4685c661-8a37-4bf6-9ec4-f4ba899c359e",
         "90c4dcd8-bb47-42df-afd8-a5ff0505acb9",
+        "a6cc132e-ff9b-444d-8327-2961a6e7dda3",
         "1ba9b4e7-632f-485c-a5fe-c5fedf3796f4",
         "f2fffc2d-1b29-4078-b828-c09621011f64",
         "f4644607-5d8a-4e81-9ca2-c7aed0874335",
@@ -604,6 +605,16 @@
       "tweenType": "LINEAR",
       "tweened": false,
       "type": "IMAGE"
+    },
+    {
+      "$id": "2e52e508-4be4-4550-b849-0baad10fefe1",
+      "length": 2,
+      "pluginMetadata": {
+      },
+      "symbol": "43dbbe16-b601-44cc-8991-9636ae13d168",
+      "tweenType": "LINEAR",
+      "tweened": false,
+      "type": "LINE_SEGMENT"
     }
   ],
   "layers": [
@@ -1058,12 +1069,12 @@
     },
     {
       "$id": "f4644607-5d8a-4e81-9ca2-c7aed0874335",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "999a4b22-e334-454d-af8c-41976b5b77d4"
       ],
       "locked": true,
-      "name": "Opt. Plat 3",
+      "name": "Opt. Plat HIT",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1073,12 +1084,12 @@
     },
     {
       "$id": "f2fffc2d-1b29-4078-b828-c09621011f64",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "68b3c958-dee4-4ce1-901a-edd0e1e2327a"
       ],
       "locked": true,
-      "name": "Opt. Plat 2",
+      "name": "Opt. Plat HURT",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1088,12 +1099,12 @@
     },
     {
       "$id": "1ba9b4e7-632f-485c-a5fe-c5fedf3796f4",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "016c688c-0628-458a-a5aa-20d3c6ca01d5"
       ],
       "locked": true,
-      "name": "Opt. Plat 1",
+      "name": "Opt. Plat SPECIAL",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1103,12 +1114,12 @@
     },
     {
       "$id": "36463307-5288-471a-a470-0060d506a361",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "b709d089-257a-4f07-965c-46be926fc7e1"
       ],
       "locked": true,
-      "name": "Opt. Plat 4",
+      "name": "Opt. Plat STAGE",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1118,12 +1129,12 @@
     },
     {
       "$id": "5247496b-1fab-4dcb-a5f9-8d77782678b4",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "ce1d300f-e609-4d37-8e9e-fa5e909f20c8"
       ],
       "locked": true,
-      "name": "Opt. Plat 5",
+      "name": "Opt. Plat ATT_SLOW",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1133,12 +1144,12 @@
     },
     {
       "$id": "a0764d36-17b2-4a4e-a549-e7b0815a3959",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "45b2c1fc-a067-407d-8309-4b7b4bf01d72"
       ],
       "locked": true,
-      "name": "Opt. Plat 6",
+      "name": "Opt. Plat ATT_FLOAT",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1148,12 +1159,12 @@
     },
     {
       "$id": "0f1b1adb-a620-452d-8bda-71740b3c5951",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "ce10693b-7ac5-4668-a187-9c3c5239c109"
       ],
       "locked": true,
-      "name": "Opt. Plat 7",
+      "name": "Opt. Plat UNKOWN_1",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1163,12 +1174,12 @@
     },
     {
       "$id": "8823ef27-468b-47b0-884f-b5a1488df24c",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "1b7370ac-5546-4667-92b9-ae2b027c18d7"
       ],
       "locked": true,
-      "name": "Opt. Plat 8",
+      "name": "Opt. Plat UNKOWN_2",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1178,12 +1189,12 @@
     },
     {
       "$id": "f5973eb4-8a47-48bf-b251-052c74ad4693",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "99904deb-66a9-45a4-abc9-c2496c43e433"
       ],
       "locked": true,
-      "name": "Opt. Plat 9",
+      "name": "Opt. Plat UNKOWN_3",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
           "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
@@ -1383,6 +1394,21 @@
       "pluginMetadata": {
       },
       "type": "LABEL"
+    },
+    {
+      "$id": "a6cc132e-ff9b-444d-8327-2961a6e7dda3",
+      "hidden": false,
+      "keyframes": [
+        "2e52e508-4be4-4550-b849-0baad10fefe1"
+      ],
+      "locked": true,
+      "name": "Options Floor",
+      "pluginMetadata": {
+        "com.fraymakers.FraymakersMetadata": {
+          "lineSegmentType": "LINE_SEGMENT_STRUCTURE"
+        }
+      },
+      "type": "LINE_SEGMENT"
     }
   ],
   "paletteMap": {
@@ -2052,6 +2078,26 @@
       "type": "IMAGE",
       "x": -950,
       "y": -1775
+    },
+    {
+      "$id": "43dbbe16-b601-44cc-8991-9636ae13d168",
+      "alpha": 0.5,
+      "color": "0xeeeeee",
+      "pluginMetadata": {
+        "com.fraymakers.FraymakersMetadata": {
+          "dropThrough": false,
+          "leftLedge": false,
+          "rightLedge": false,
+          "structureType": "FLOOR"
+        }
+      },
+      "points": [
+        -292.39174906239344,
+        -48.926355267644055,
+        306,
+        -48.926355267644055
+      ],
+      "type": "LINE_SEGMENT"
     }
   ],
   "tags": [
