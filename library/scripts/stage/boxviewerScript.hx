@@ -395,8 +395,9 @@ var SlowDownHandler = {
 			SlowDownHandler._char = Util.getP1();
 			SlowDownHandler._char_initialized = true;
 		}
-		if (SlowDownHandler._slow_amount > 0 && SlowDownHandler._char != null) {
-			if (SlowDownHandler._char.inStateGroup(CStateGroup.ATTACK))
+		var char: Character = SlowDownHandler._char;
+		if (SlowDownHandler._slow_amount > 0 && char != null) {
+			if (char.inStateGroup(CStateGroup.ATTACK) || char.inState(CState.GRAB))
 				match.freezeScreen(SlowDownHandler._slow_amount, []);
 		}
 	},
