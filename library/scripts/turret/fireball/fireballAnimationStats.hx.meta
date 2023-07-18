@@ -1,0 +1,18 @@
+{
+  "export": true,
+  "guid": "f3b90813-37da-42d2-9937-97552cf0ddbb",
+  "id": "boxviewerFireballAnimationStats",
+  "language": "hscript",
+  "pluginMetadata": {
+    "com.fraymakers.FraymakersMetadata": {
+      "objectType": "PROJECTILE",
+      "version": "0.1.2"
+    }
+  },
+  "plugins": [
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "tags": [
+  ],
+  "version": 1
+}

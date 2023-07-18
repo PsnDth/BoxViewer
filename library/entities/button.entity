@@ -79,7 +79,7 @@
     },
     {
       "$id": "1227b8c8-65e1-497e-b38c-061d6150188b",
-      "length": 1,
+      "length": 2,
       "pluginMetadata": {
       },
       "symbol": "76ab2c0e-5da4-4f89-ab59-2c5395ac77d8",
@@ -89,7 +89,7 @@
     },
     {
       "$id": "67caf380-c486-4a5e-9ec6-0ded51ec278e",
-      "length": 1,
+      "length": 2,
       "pluginMetadata": {
       },
       "symbol": "f383e564-5148-43e1-9c12-f322d4bc56ac",
@@ -99,7 +99,7 @@
     },
     {
       "$id": "6dd2d44c-69a1-4aa7-b14b-48e64ce874cc",
-      "length": 1,
+      "length": 2,
       "pluginMetadata": {
       },
       "symbol": "62f90fea-40bd-41e9-be13-ed36316f1fe8",
@@ -109,7 +109,7 @@
     },
     {
       "$id": "73c9c4fb-9d1c-489c-82e2-5951400b6825",
-      "length": 1,
+      "length": 2,
       "pluginMetadata": {
       },
       "symbol": "7c30b491-3f66-4f7a-a8b3-90676410f41c",
@@ -220,16 +220,16 @@
     {
       "$id": "fb8613e0-c5a0-436d-8329-e0a5f37bdfdd",
       "defaultAlpha": 0.5,
-      "defaultColor": "0xf5e042",
+      "defaultColor": "0x42ecff",
       "hidden": false,
       "keyframes": [
         "6dd2d44c-69a1-4aa7-b14b-48e64ce874cc"
       ],
       "locked": false,
-      "name": "hurtbox0",
+      "name": "counterbox0",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
-          "collisionBoxType": "HURT_BOX",
+          "collisionBoxType": "COUNTER_BOX",
           "index": 0
         }
       },
@@ -238,16 +238,16 @@
     {
       "$id": "b0e854ab-32d5-4c84-a7a1-b6e394470602",
       "defaultAlpha": 0.5,
-      "defaultColor": "0xf5e042",
+      "defaultColor": "0x42ecff",
       "hidden": false,
       "keyframes": [
         "73c9c4fb-9d1c-489c-82e2-5951400b6825"
       ],
       "locked": false,
-      "name": "hurtbox0",
+      "name": "counterbox0",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
-          "collisionBoxType": "HURT_BOX",
+          "collisionBoxType": "COUNTER_BOX",
           "index": 0
         }
       },

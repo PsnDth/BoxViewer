@@ -43,5 +43,21 @@
     "type": "structure",
     "objectStatsId": "boxviewerElevatorStats",
     "scriptId": "boxviewerElevatorScript"
+  },{
+    "id": "boxviewerTurret",
+    "type": "projectile",
+    "objectStatsId": "boxviewerTurretStats",
+    "animationStatsId": "boxviewerTurretAnimationStats",
+    "hitboxStatsId": "boxviewerTurretHitboxStats",
+    "scriptId": "boxviewerTurretScript",
+    "costumesId": "boxviewerTurretCostumes"
+  },{
+    "id": "boxviewerFireball",
+    "type": "projectile",
+    "objectStatsId": "boxviewerFireballStats",
+    "animationStatsId": "boxviewerFireballAnimationStats",
+    "hitboxStatsId": "boxviewerFireballHitboxStats",
+    "scriptId": "boxviewerFireballScript",
+    "costumesId": "boxviewerTurretCostumes"
   }]
 }

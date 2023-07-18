@@ -95,7 +95,7 @@
       "keyframes": [
         "bf43a7fd-90ff-44fd-b8e5-1147b48e267f"
       ],
-      "locked": false,
+      "locked": true,
       "name": "Image Layer",
       "pluginMetadata": {
       },

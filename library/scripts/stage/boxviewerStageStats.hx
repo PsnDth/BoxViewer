@@ -45,7 +45,20 @@
 				yPanMultiplier: 0.06,
 				scaleMultiplier: 1,
 				foreground: false,
-				depth: 2001
+				depth: 2000
+			},
+			{
+				spriteContent: self.getResource().getContent("boxviewer"),
+				animationId: "static_bg_grid",
+				mode: ParallaxMode.DEPTH,
+				originalBGWidth: 1900,
+				originalBGHeight: 3550,
+				horizontalPanLock: true,
+				verticalPanLock: true,
+				loopWidth: 1900,
+				scaleMultiplier: 1.5,
+				foreground: false,
+				depth: 0,
 			},
 		]
 	}

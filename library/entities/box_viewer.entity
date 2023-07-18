@@ -5,6 +5,7 @@
       "layers": [
         "d852c28a-9ab3-4063-993e-2a8dd95b98a5",
         "f8a7e04c-f524-44af-9458-b6db5f6bb675",
+        "d7fab402-29b7-4541-be5d-8103609a8eea",
         "996a0894-a33b-44e9-a980-5bd3ba189c6d",
         "4d897059-1f8f-43ca-8615-fa2b8d17584a",
         "a47cfefd-aff4-4469-a060-679f09bdcdb2",
@@ -77,6 +78,15 @@
         "a74e598a-08f6-49df-9077-07c82c3fd06e"
       ],
       "name": "static_bg",
+      "pluginMetadata": {
+      }
+    },
+    {
+      "$id": "65a5737c-c8b8-4e3f-a32b-bb64fcb47d69",
+      "layers": [
+        "fb55ac4c-3c33-4790-8e06-6d2e9c342853"
+      ],
+      "name": "static_bg_grid",
       "pluginMetadata": {
       }
     }
@@ -615,6 +625,36 @@
       "tweenType": "LINEAR",
       "tweened": false,
       "type": "LINE_SEGMENT"
+    },
+    {
+      "$id": "9b7f799b-c4c9-4bae-8085-71038eacc8d7",
+      "length": 1,
+      "pluginMetadata": {
+      },
+      "symbol": "28ce3ada-ceec-408e-acb8-be64f72c1dc5",
+      "tweenType": "LINEAR",
+      "tweened": false,
+      "type": "IMAGE"
+    },
+    {
+      "$id": "68372c35-6bc0-4c54-960e-b2ea04e39211",
+      "length": 1,
+      "pluginMetadata": {
+      },
+      "symbol": null,
+      "tweenType": "LINEAR",
+      "tweened": false,
+      "type": "IMAGE"
+    },
+    {
+      "$id": "e8f1f6d2-6b9d-4ac4-9958-7e52b9eb45cf",
+      "length": 1,
+      "pluginMetadata": {
+      },
+      "symbol": "b24fdf1a-d850-43aa-801b-2c40b2048cd6",
+      "tweenType": "LINEAR",
+      "tweened": false,
+      "type": "IMAGE"
     }
   ],
   "layers": [
@@ -732,7 +772,7 @@
       "$id": "d852c28a-9ab3-4063-993e-2a8dd95b98a5",
       "defaultAlpha": 0.5,
       "defaultColor": "0xd1d1d1",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "958652d4-84a5-4301-9fd4-b3f8bbab27be"
       ],
@@ -749,7 +789,7 @@
       "$id": "f8a7e04c-f524-44af-9458-b6db5f6bb675",
       "defaultAlpha": 0.5,
       "defaultColor": "0xd1d1d1",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "6d13f7d1-eb89-4fdc-8be3-311721771bd1"
       ],
@@ -769,7 +809,7 @@
         "558dcc6a-ebb5-40d0-a2b9-b45c158cfd58",
         "c37f3c17-fe1f-4fb2-9b41-75bf00d1cd60"
       ],
-      "locked": false,
+      "locked": true,
       "name": "BG Stage Image",
       "pluginMetadata": {
       },
@@ -777,7 +817,7 @@
     },
     {
       "$id": "4d897059-1f8f-43ca-8615-fa2b8d17584a",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "044c6301-4f5a-4d05-8d51-7bf459fb11c9"
       ],
@@ -792,7 +832,7 @@
     },
     {
       "$id": "1c6f198f-337c-4d57-8a4b-aff5eee8da04",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "b36ff2e0-985c-4b69-80f6-f9919ca6e788"
       ],
@@ -807,7 +847,7 @@
     },
     {
       "$id": "41a370a0-6f0b-4110-8422-f0305495bd20",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "cbf142a6-54d4-41bc-904d-4d5cad189f87"
       ],
@@ -822,7 +862,7 @@
     },
     {
       "$id": "49c28e29-a931-40af-9eca-ad4fdc64753f",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "dbe2c158-c097-406e-887e-1a44e45073ac"
       ],
@@ -837,7 +877,7 @@
     },
     {
       "$id": "4bb1ede5-20dc-4bc8-92e2-90dc6a38965c",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "871885a3-7312-4d3e-a23b-611a2d74ad43"
       ],
@@ -852,7 +892,7 @@
     },
     {
       "$id": "3c8283de-50b5-4715-afa7-93b74cc9cfc4",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "3a97b075-89da-4336-8031-d1637d61d2eb"
       ],
@@ -867,7 +907,7 @@
     },
     {
       "$id": "f116ecd4-82d3-48db-8f54-f325c0e2c009",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "63ae8842-9e74-4c41-bd2f-c67e3324a1a2"
       ],
@@ -882,7 +922,7 @@
     },
     {
       "$id": "9ef5db8b-463a-4606-a580-98600f41542f",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "e1c61714-0b35-46f4-8d28-31f72f967e87"
       ],
@@ -897,7 +937,7 @@
     },
     {
       "$id": "d2979404-4345-4070-a7f2-bb39ef167ad0",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "24fdb70e-e03d-4f30-9913-1014a52f0667"
       ],
@@ -912,12 +952,12 @@
     },
     {
       "$id": "028ce205-a039-430c-b1a1-730a717f4822",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "a878c41a-7516-4194-8c32-37649b16e4de",
         "cee08b3f-7d42-46d2-908b-7124cc8e4612"
       ],
-      "locked": false,
+      "locked": true,
       "name": "FG Stage Image",
       "pluginMetadata": {
       },
@@ -925,7 +965,7 @@
     },
     {
       "$id": "a47cfefd-aff4-4469-a060-679f09bdcdb2",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "06e80681-9977-4d43-b8df-893df10ef8b2"
       ],
@@ -941,7 +981,7 @@
     },
     {
       "$id": "9634150e-64d6-4b99-a622-fab30c523f81",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "1b3d80df-841a-4d0b-9688-29dc0914363a"
       ],
@@ -957,7 +997,7 @@
     },
     {
       "$id": "4ca54e29-2e0a-4ded-abfb-65d322d30216",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "fbb23fef-8f8f-49ca-8578-9707694ede3a"
       ],
@@ -973,7 +1013,7 @@
     },
     {
       "$id": "9e69d5a9-a8d7-48f8-bd09-3ffa93f39a9c",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "cf792d91-158a-40ba-a02b-60acc7ca2c8c"
       ],
@@ -989,7 +1029,7 @@
     },
     {
       "$id": "fa28782a-5af7-4d9f-9662-5f75efeed157",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "bad04109-14ad-4e77-a1e0-9b7cc60f73fb"
       ],
@@ -1005,7 +1045,7 @@
     },
     {
       "$id": "4a7a20e5-b2ac-4fca-8386-ca31926b78df",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "46a54e24-6390-4a62-9301-3505411368f6"
       ],
@@ -1021,7 +1061,7 @@
     },
     {
       "$id": "9285a071-2431-4940-b935-4e2da0c861a6",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "f9382032-434a-4bbd-aa47-12c0e5dca670"
       ],
@@ -1037,7 +1077,7 @@
     },
     {
       "$id": "90c4dcd8-bb47-42df-afd8-a5ff0505acb9",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "e4c3a9b6-6fdc-4620-bc20-74767738ba63"
       ],
@@ -1053,7 +1093,7 @@
     },
     {
       "$id": "4685c661-8a37-4bf6-9ec4-f4ba899c359e",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "571f035a-cd10-41ad-baa5-fb0fb7d30da0"
       ],
@@ -1204,7 +1244,7 @@
     },
     {
       "$id": "b565b10b-709b-49b9-97d6-71f8262c6257",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "4d04fa0e-e285-4db4-a895-1e1c78d70ed0"
       ],
@@ -1219,11 +1259,11 @@
     },
     {
       "$id": "cc89bc48-2a76-416c-b849-cb18c242a1be",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "d959ad8f-b233-47ea-bd42-4e908d0954af"
       ],
-      "locked": true,
+      "locked": false,
       "name": "FD Plat Left Wall",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
@@ -1234,11 +1274,11 @@
     },
     {
       "$id": "9a54bc27-cf0c-41f5-bc28-60fa98f942e3",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "3f3f8a7a-8609-4f6b-93e7-48a522ec667f"
       ],
-      "locked": true,
+      "locked": false,
       "name": "FD Plat Right Wall",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
@@ -1249,7 +1289,7 @@
     },
     {
       "$id": "2629ecfe-a417-44c7-8f0f-b4cb7ef39af2",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "13fe4f44-71ca-4b94-bce6-c14e48a3dfd1"
       ],
@@ -1264,7 +1304,7 @@
     },
     {
       "$id": "d58ddb70-ea2a-4f50-8d39-eee0995691ff",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "80080b2d-2fac-4769-bca7-8728c57290ac"
       ],
@@ -1279,7 +1319,7 @@
     },
     {
       "$id": "4aa71d7e-a9f6-4b32-bd25-cae16cbd2eab",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "167d667d-8b6b-4bcc-b3fb-0a26daa2009b"
       ],
@@ -1309,7 +1349,7 @@
     },
     {
       "$id": "07a82d23-2755-4861-ab80-fb218b582aee",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "95db052c-a9e3-4ac2-9307-606492737bde"
       ],
@@ -1324,11 +1364,11 @@
     },
     {
       "$id": "c708476f-c837-4ee0-9e79-a07afa3b444a",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "64c87cfc-0a57-4273-ae2f-a3033ff43dc9"
       ],
-      "locked": true,
+      "locked": false,
       "name": "Main Floor 2",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
@@ -1339,7 +1379,7 @@
     },
     {
       "$id": "d69c0949-6415-4412-9cc5-1cb9ebd3ec28",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "d538f00c-d5c1-4649-a884-dd90117d8048"
       ],
@@ -1358,7 +1398,7 @@
       "keyframes": [
         "753a725c-7845-4999-858f-5f78946ca23b"
       ],
-      "locked": false,
+      "locked": true,
       "name": "Main Left Wall",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
@@ -1373,7 +1413,7 @@
       "keyframes": [
         "b0982423-f90b-4bb4-8f6a-b95d65c6a1e4"
       ],
-      "locked": false,
+      "locked": true,
       "name": "Main Left Wall Slope",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
@@ -1384,7 +1424,7 @@
     },
     {
       "$id": "27abaaff-33f3-4f7b-8259-032ef0afb7d2",
-      "hidden": true,
+      "hidden": false,
       "keyframes": [
         "38aca855-8b66-4093-bccd-4aa08a39b729",
         "d1713667-05da-4af0-9da3-4047ce5cb7af"
@@ -1409,6 +1449,31 @@
         }
       },
       "type": "LINE_SEGMENT"
+    },
+    {
+      "$id": "fb55ac4c-3c33-4790-8e06-6d2e9c342853",
+      "hidden": false,
+      "keyframes": [
+        "9b7f799b-c4c9-4bae-8085-71038eacc8d7"
+      ],
+      "locked": false,
+      "name": "Image Layer",
+      "pluginMetadata": {
+      },
+      "type": "IMAGE"
+    },
+    {
+      "$id": "d7fab402-29b7-4541-be5d-8103609a8eea",
+      "hidden": false,
+      "keyframes": [
+        "68372c35-6bc0-4c54-960e-b2ea04e39211",
+        "e8f1f6d2-6b9d-4ac4-9958-7e52b9eb45cf"
+      ],
+      "locked": true,
+      "name": "BG Stage Grid",
+      "pluginMetadata": {
+      },
+      "type": "IMAGE"
     }
   ],
   "paletteMap": {
@@ -2098,6 +2163,36 @@
         -48.926355267644055
       ],
       "type": "LINE_SEGMENT"
+    },
+    {
+      "$id": "28ce3ada-ceec-408e-acb8-be64f72c1dc5",
+      "alpha": 1,
+      "imageAsset": "0f081d2b-7808-43a9-a883-2653e0a046ec",
+      "pivotX": 950,
+      "pivotY": 1775,
+      "pluginMetadata": {
+      },
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "type": "IMAGE",
+      "x": -950,
+      "y": -1775
+    },
+    {
+      "$id": "b24fdf1a-d850-43aa-801b-2c40b2048cd6",
+      "alpha": 0,
+      "imageAsset": "0f081d2b-7808-43a9-a883-2653e0a046ec",
+      "pivotX": 950,
+      "pivotY": 1775,
+      "pluginMetadata": {
+      },
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "type": "IMAGE",
+      "x": -950,
+      "y": -1775
     }
   ],
   "tags": [

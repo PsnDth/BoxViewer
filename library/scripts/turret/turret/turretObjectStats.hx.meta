@@ -1,0 +1,17 @@
+{
+  "export": true,
+  "guid": "9a27718e-b6ef-4e8a-8146-1fb653be7b40",
+  "id": "boxviewerTurretStats",
+  "language": "hscript",
+  "pluginMetadata": {
+    "com.fraymakers.FraymakersMetadata": {
+      "version": "0.1.2"
+    }
+  },
+  "plugins": [
+    "com.fraymakers.FraymakersMetadata"
+  ],
+  "tags": [
+  ],
+  "version": 1
+}

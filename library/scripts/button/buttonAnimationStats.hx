@@ -1,5 +1,5 @@
 // Animation stats
 {
-    on: {endType: AnimationEndType.LOOP, bodyStatus: BodyStatus.INVINCIBLE},
-    off: {endType: AnimationEndType.LOOP, bodyStatus: BodyStatus.INVINCIBLE},
+	on: {endType: AnimationEndType.LOOP},
+	off: {endType: AnimationEndType.LOOP},
 }

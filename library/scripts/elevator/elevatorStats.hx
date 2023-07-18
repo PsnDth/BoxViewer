@@ -1,5 +1,4 @@
 // Stats for Hitbox Debug elevator platform
-
 {
 	spriteContent: self.getResource().getContent("boxviewerElevator"),
 	animationId: "platform",

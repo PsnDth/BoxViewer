@@ -1,24 +1,142 @@
 // API Script for Hitbox Debug Stage
-var BOX_TYPES = [
-	CollisionBoxType.HURT, // bottom layer
-	CollisionBoxType.SHIELD,
-	CollisionBoxType.LEDGEGRAB,
-	CollisionBoxType.HIT,
-	CollisionBoxType.GRAB,
-	CollisionBoxType.ABSORB,
-	CollisionBoxType.REFLECT,
-	CollisionBoxType.COUNTER,
-	CollisionBoxType.CUSTOMA,
-	CollisionBoxType.CUSTOMB,
-	CollisionBoxType.CUSTOMC, // top layer
-];
+// frames in boxViewerVfx#display_box and  boxViewerVfx#display_line will match these colors
+var FRAME_COLORS = {
+	RED: 1,
+	ORANGE: 2,
+	YELLOW: 3,
+	YELLOW_GREEN: 4,
+	GREEN: 5,
+	BLUE_GREEN: 6,
+	CYAN: 7,
+	AQUAMARINE: 8,
+	BLUE: 9,
+	PURPLE: 10,
+	RED_PURPLE: 11,
+	ROSE_PINK: 12,
+};
 
 // NOTE: The below look like classes, but are really just structs. Treat them like singletons/static classes.
 //       Goal of doing it this way, is to make things a bit more portable.
 // TODO: Should be more rollback safe probably
+function frames_to_string(frames) {
+	var frame_string = "";
+	var curr_range = [frames[0], frames[0]];
+	for (frame in frames) {
+		if (frame == curr_range[1])
+			continue;
+		if (frame > curr_range[1] + 1) {
+			if (frame_string != "") {
+				frame_string += ", ";
+			}
+			frame_string += curr_range[0] + "-" + curr_range[1];
+			curr_range = [frame, frame];
+		}
+		curr_range[1] += 1;
+	}
+	if (frame_string != "") {
+		frame_string += ", ";
+	}
+	frame_string += curr_range[0] + "-" + curr_range[1];
+	return frame_string;
+}
+
+function printAllHitboxData(hitbox_info) {
+	/**
+	 * { [attackId: Int]: { 
+	 *     stats: {[hitboxIndex: int]: HitboxStats}, 
+	 *     active_frames: {[hitboxIndex: int]: Int[]} 
+	 * } }
+	 */
+	var i = 0;
+
+	Engine.log("-------------------------------------------------------------------------------------------------------------------------------", 0x948f58);
+	for (attack_id in hitbox_info.keys()) {
+		var hb_info = hitbox_info.get(attack_id);
+		for (hb_index in hb_info.stats.keys()) {
+			var stats = hb_info.stats.get(hb_index);
+			var seen_frames = hb_info.active_frames.get(hb_index);
+			printHitboxData(i, stats, frames_to_string(seen_frames));
+			++i;
+			Engine.log("-------------------------------------------------------------------------------------------------------------------------------",
+				0x948f58);
+		}
+	}
+	Engine.log("");
+}
+
+function printHitboxData(idx, hitbox_stats, frame_string) {
+	// Adapted from the Frame Data Tool
+	var attackId = hitbox_stats.attackId;
+	var index = hitbox_stats.index;
+	// Important hitbox variables
+	var rawdamage = hitbox_stats.rawDamage;
+	var baseKnockback = hitbox_stats.baseKnockback;
+	var knockbackgrowth = hitbox_stats.knockbackGrowth;
+	var rawangle = hitbox_stats.rawAngle;
+	var reversibleangle = hitbox_stats.reversibleAngle;
+	var hitstop = hitbox_stats.hitstop;
+	var hitstopoffset = hitbox_stats.hitstopOffset;
+	var hitstopmultipler = hitbox_stats.hitstopMultiplier;
+	var selfhitstop = hitbox_stats.selfHitstop;
+	var selfhittopoffset = hitbox_stats.selfHitstopOffset;
+	var hitstun = hitbox_stats.hitstun;
+	// Shield
+	var shieldable = hitbox_stats.shieldable;
+	var shieldDamageMultiplier = hitbox_stats.shieldDamageMultiplier;
+	var shieldstunMultiplier = hitbox_stats.shieldstunMultiplier;
+	// Proj / Other
+	var reflectable = hitbox_stats.reflectable;
+	var absorbable = hitbox_stats.absorbable;
+	var reverse = hitbox_stats.reverse;
+	// Uncommon
+	var attackRatio = hitbox_stats.attackRatio;
+	var maxChargeDamageMultiplier = hitbox_stats.maxChargeDamageMultiplier;
+	var jabResetType = hitbox_stats.jabResetType;
+	var flinch = hitbox_stats.flinch;
+	var forceTumbleFall = hitbox_stats.forceTumbleFall;
+	var stackKnockback = hitbox_stats.stackKnockback;
+	var knockbackCap = hitbox_stats.knockbackCap;
+
+	// Make Array With Data
+	current_hitbox_stats_basic = [
+		"hitbox" + index,
+		"| DMG:" + rawdamage,
+		"| BKB:" + baseKnockback,
+		"| KBG:" + knockbackgrowth,
+		"| ANG:" + rawangle,
+		"| R.ANG:" + reversibleangle,
+		"| HP:" + hitstop,
+		"| HPO:" + hitstopoffset,
+		"| SLHP:" + selfhitstop,
+		"| SLHPO:" + selfhittopoffset,
+		"| HPMUL:" + hitstopmultipler,
+		"| HTSTN:" + hitstun
+	];
+
+	// Extra Data Array
+	current_hitbox_stats_extra = [
+		"SLD:" + shieldable,
+		"| S.DMG:" + shieldDamageMultiplier,
+		"| S.STN:" + shieldstunMultiplier,
+		"| RFT:" + reflectable,
+		"| ABS:" + absorbable,
+		"| RVS:" + reverse,
+		"| AKRT:" + attackRatio,
+		"| CDMUL:" + maxChargeDamageMultiplier,
+		"| JRST:" + jabResetType,
+		"| FLCH:" + flinch,
+		"| FTMLB:" + forceTumbleFall,
+		"| STKB:" + stackKnockback,
+		"| KCAP:" + knockbackCap
+	];
+	var active_frames_string:String = "#" + idx + ": | Active Frames: " + frame_string;
+	var hitbox_output_string:String = active_frames_string + " | " + current_hitbox_stats_basic;
+	Engine.log(hitbox_output_string);
+	Engine.log(current_hitbox_stats_extra);
+}
 
 var Util = {
-	getP1: () -> {
+	getP1: inline function() {
 		var players = match.getCharacters().filter((c) -> !c.getPlayerConfig().cpu);
 		return (players.length > 0 ? players[0] : null);
 	},
@@ -40,10 +158,29 @@ var Util = {
 			default: "N/A";
 		}
 	},
-	getTrueCenter: function(cbox:CollisionBox) {
-		if (cbox.rotation == 0)
-			return new Point(cbox.centerX, cbox.centerY);
-		var p = new Point(cbox.x, cbox.y);
+	bodyStatusToString: (bodyStatus) -> {
+		switch (bodyStatus) {
+			case BodyStatus.DAMAGE_ARMOR: "DAMAGE_ARMOR";
+			case BodyStatus.DAMAGE_RESISTANCE: "DAMAGE_RESISTANCE";
+			case BodyStatus.INTANGIBLE: "INTANGIBLE";
+			case BodyStatus.INVINCIBLE: "INVINCIBLE";
+			case BodyStatus.INVINCIBLE_GRABBABLE: "INVINCIBLE_GRABBABLE";
+			case BodyStatus.LAUNCH_RESISTANCE: "LAUNCH_RESISTANCE";
+			case BodyStatus.LAUNCH_ARMOR: "LAUNCH_ARMOR";
+			case BodyStatus.NONE: "NONE";
+			case BodyStatus.SUPER_ARMOR: "SUPER_ARMOR";
+			default: "N/A";
+		}
+	},
+	getTrueCenter: inline function(cbox:CollisionBox, outPoint:Point) {
+		if (cbox.rotation == 0) {
+			outPoint.x = cbox.centerX;
+			outPoint.y = cbox.centerY;
+			return outPoint;
+		}
+		var p = outPoint;
+		outPoint.x = cbox.x;
+		outPoint.y = cbox.y;
 		var tMatrix = new Matrix();
 		// Undo rotation around pivot
 		tMatrix.translate(-cbox.pivotX, -cbox.pivotY);
@@ -55,7 +192,7 @@ var Util = {
 		tMatrix.translate(-cbox.pivotX, -cbox.pivotY);
 		tMatrix.rotate(Math.toRadians(cbox.rotation));
 		tMatrix.translate(cbox.pivotX, cbox.pivotY);
-		return Util.applyMatrix(tMatrix, p);
+		return Util.applyMatrix(tMatrix, p, p);
 	},
 	rotatePointAroundPivot: function(point:Point, pivot:Point, angle:Float) {
 		var degrees = Math.forceBase360(angle);
@@ -67,7 +204,7 @@ var Util = {
 		tMatrix.translate(pivot.x, pivot.y);
 		return Util.applyMatrix(tMatrix, point);
 	},
-	transformPointAroundPivot: function(point:Point, pivot:Point, rotation:Float, scale:Point) {
+	transformPointAroundPivot: inline function(point:Point, pivot:Point, rotation:Float, scale:Point) {
 		var degrees = Math.forceBase360(rotation);
 		if (degrees == 0 && scale.x == 1 && scale.y == 1)
 			return point;
@@ -81,21 +218,23 @@ var Util = {
 			Math.fastSin(degrees) * translated_point.x
 			+ Math.fastCos(degrees) * translated_point.y
 			+ pivot.y);
-		var tMatrix = new Matrix();
-		tMatrix.translate(-pivot.x, -pivot.y);
-		tMatrix.rotate(Math.toRadians(rotation));
-		tMatrix.scale(scale.x, scale.y);
-		tMatrix.translate(pivot.x, pivot.y);
-		return Util.applyMatrix(tMatrix, point);
 	},
-	average: (num1, num2) -> (num1 + num2) / 2,
+	average: inline function(num1, num2) {
+		return (num1 + num2) / 2;
+	},
 	printMatrix: (m) -> {
 		Engine.log("[" + m.a + " " + m.b + " " + m.tx);
 		Engine.log(" " + m.c + " " + m.d + " " + m.ty);
 		Engine.log(" " + 0 + " " + 0 + " " + 1 + "]");
 	},
-	applyMatrix: function(matrix:Matrix, point:Point) {
-		return new Point(matrix.a * point.x + matrix.b * point.y + matrix.tx, matrix.c * point.x + matrix.d * point.y + matrix.ty);
+	applyMatrix: function(matrix:Matrix, point:Point, ?outPoint:Point) {
+		var out = outPoint == null ? new Point(0, 0) : outPoint;
+		var x = matrix.a * point.x + matrix.b * point.y + matrix.tx;
+		var y = matrix.c * point.x + matrix.d * point.y + matrix.ty;
+		// in case point == outPoint
+		out.x = x;
+		out.y = y;
+		return out;
 	},
 	checkBits: (num, mask) -> (num & mask) != 0x0,
 	positiveMod: (num, mod) -> (((num % mod) + mod) % mod),
@@ -107,7 +246,7 @@ var Util = {
 			// Should not fire if pressed this frame.
 			// TODO: This should probably be an option
 			var seen_buttons = Util.checkBits(char.getHeldControls().buttons, buttonMask);
-			poll_for_press = () -> {
+			poll_for_press = StageTimer.addCallback(() -> {
 				if (Util.checkBits(char.getHeldControls().buttons, buttonMask)) {
 					if (!seen_buttons) {
 						seen_buttons = true;
@@ -118,8 +257,7 @@ var Util = {
 				} else {
 					seen_buttons = false;
 				}
-			};
-			StageTimer.addCallback(poll_for_press);
+			});
 		})();
 		// return callback so it can be removed manually
 		return poll_for_press;
@@ -140,12 +278,17 @@ var Util = {
 		for (effectId in ids)
 			char.removeStatusEffect(StatusEffectType.DISABLE_ACTION, effectId);
 	},
+	getAssistId: (char) -> {
+		var assist = char.getPlayerConfig().assist;
+		return assist.namespace + "::" + assist.resourceId + "." + assist.contentId;
+	},
 };
 
 var StageGlobals = {
 	// Append to this list for entities that are part of the stage, used
 	// to differentiate between game entities and spawned ones
 	entities: [],
+	assists: [],
 };
 
 // Tools for running callbacks on every frame! Call tick() every frame, and dependencies can hook into this call using this class
@@ -153,7 +296,7 @@ var StageGlobals = {
 var StageTimer = {
 	// init: () -> match.addEventListener(MatchEvent.TICK_START, StageTimer._tick, {persistent: true}),
 	init: () -> {},
-	addCallback: (cb) -> StageTimer._callbacks.contains(cb) ? StageTimer._callbacks.indexOf(cb) : StageTimer._callbacks.push(cb) - 1,
+	addCallback: (cb) -> StageTimer._callbacks.contains(cb) ? cb : StageTimer._callbacks[StageTimer._callbacks.push(cb) - 1],
 	removeCallback: (cb) -> StageTimer._callbacks.remove(cb),
 	/// Private
 	_tick: () -> {
@@ -164,12 +307,31 @@ var StageTimer = {
 };
 
 // Draw collision (hurt, hit, grab, etc.) boxes as vfx w/ different colours. Simply initialize w/ blacklist of entities to not render
-// Depends: StageTimer, match, StageGlobals
+// Depends: StageTimer, match
 var CollisionBoxRenderer = {
-	init: function() {
+	BOX_TYPES: [
+		CollisionBoxType.HURT, // bottom layer
+		CollisionBoxType.SHIELD,
+		CollisionBoxType.LEDGEGRAB,
+		CollisionBoxType.HIT,
+		CollisionBoxType.GRAB,
+		CollisionBoxType.ABSORB,
+		CollisionBoxType.REFLECT,
+		CollisionBoxType.COUNTER,
+		CollisionBoxType.CUSTOMA,
+		CollisionBoxType.CUSTOMB,
+		CollisionBoxType.CUSTOMC, // top layer
+	],
+	init: function(?blacklist, ?assists) {
 		StageTimer.addCallback(CollisionBoxRenderer._renderLoop);
 		// match.addEventListener(MatchEvent.TICK_END, CollisionBoxRenderer._renderLoop, {persistent: true});
 		// Don't render hurtboxes by default
+		if (blacklist != null) {
+			CollisionBoxRenderer._blacklist = blacklist;
+		}
+		if (assists != null) {
+			CollisionBoxRenderer._assists = assists;
+		}
 		CollisionBoxRenderer.toggleRender(CollisionBoxType.HURT);
 	},
 	toggleRender: (boxType) -> {
@@ -177,20 +339,33 @@ var CollisionBoxRenderer = {
 		return true;
 	},
 	/// Private
+	_assists: [],
+	_blacklist: [],
 	_boxTypeRenderMap: new IntMap(), // if false
 	_shouldRender: (boxType) -> (!CollisionBoxRenderer._boxTypeRenderMap.exists(boxType)
 		|| CollisionBoxRenderer._boxTypeRenderMap.get(boxType)),
 	_renderLoop: () -> {
 		CollisionBoxRenderer._showBoxesFor(match.getCharacters());
 		CollisionBoxRenderer._showBoxesFor(match.getProjectiles());
+		CollisionBoxRenderer._showBoxesFor(CollisionBoxRenderer._assists);
 	},
-	_fixBox: function(cbox:CollisionBox, entity:Entity) {
-		// Returns a collision box but fixes x/y values to absolute accounting for rotation around
-		// pivot points etc.
-		// NOTE: Recalculating a lot of things that could've been determined using "relativeWith/flipWith/resizeWith"
-		//       this means that if the entity is flipped, moved, resized *during* the frame, this won't be reflected
-		// NOTE: Also accounting for game physics here since this is calculated before it applies to positions
-		var entity_scale = new Point(entity.getGameObjectStat("baseScaleX"), entity.getGameObjectStat("baseScaleY"));
+	_obj_cache: {
+		entity_scale: new Point(0, 0),
+		entity_pos: new Point(0, 0),
+		entity_pivot: new Point(0, 0),
+		fixed_box_pos: new Point(0, 0),
+		fixed_box_center: new Point(0, 0),
+		vfx_stats: new VfxStats({
+			spriteContent: self.getResource().getContent("boxviewerVfx"),
+			animation: "display_box",
+			layer: "front",
+			timeout: 1
+		}),
+	},
+	_updateEntityStats: function(entity:Entity) {
+		var entity_scale = CollisionBoxRenderer._obj_cache.entity_scale;
+		entity_scale.x = entity.getGameObjectStat("baseScaleX");
+		entity_scale.y = entity.getGameObjectStat("baseScaleY");
 		entity_scale.scale(entity.getScaleX(), entity.getScaleY());
 
 		// get status affect scales
@@ -210,85 +385,194 @@ var CollisionBoxRenderer = {
 			entity_scale.scale(1, height_scale);
 		}
 
-		var width = cbox.width * entity_scale.x;
-		var height = cbox.height * entity_scale.y;
-
-		// TODO: Might be able to convert some of these into matrix manip as well
-		//       Can probably return the matrix instead of the modified point and
-		//       then continue to apply operations to that
-		// Need to account for speed since this information is off-by-one frame.
-		// TODO: Is it possible to avoid this offset?
 		var should_apply_vel = (entity.getHitstop() == 0);
-		var entity_pos = new Point(entity.getX() + should_apply_vel * entity.getNetXVelocity(), entity.getY() + should_apply_vel * entity.getNetYVelocity());
-		var entity_pivot = new Point(entity.getPivotXScaled() + entity_pos.x, entity.getPivotYScaled() + entity_pos.y);
-		var box_center = Util.getTrueCenter(cbox);
+		var entity_pos = CollisionBoxRenderer._obj_cache.entity_pos;
+		entity_pos.x = entity.getX() + should_apply_vel * entity.getNetXVelocity();
+		entity_pos.y = entity.getY() + should_apply_vel * entity.getNetYVelocity();
+		var entity_pivot = CollisionBoxRenderer._obj_cache.entity_pivot;
+		entity_pivot.x = entity.getPivotXScaled() + entity_pos.x;
+		entity_pivot.y = entity.getPivotYScaled() + entity_pos.y;
+	},
+	_calculateVfxStats: function(cbox:CollisionBox, entity:Entity) {
+		// Returns a collision box but fixes x/y values to absolute accounting for rotation around
+		// pivot points etc.
+		// NOTE: Recalculating a lot of things that could've been determined using "relativeWith/flipWith/resizeWith"
+		//       this means that if the entity is flipped, moved, resized *during* the frame, this won't be reflected
+		// NOTE: Also accounting for game physics here since this is calculated before it applies to positions
+		// NOTE: Most the complicated calculations (in Util) are typically no-ops since entities/boxes are not rotated
 
+		var box_center = Util.getTrueCenter(
+			cbox, CollisionBoxRenderer._obj_cache.fixed_box_center // output point
+		);
+		var entity_scale = CollisionBoxRenderer._obj_cache.entity_scale;
+		var entity_pos = CollisionBoxRenderer._obj_cache.entity_pos;
+		var entity_pivot = CollisionBoxRenderer._obj_cache.entity_pivot;
 		var rotation = cbox.rotation;
 		if (entity.isFacingLeft())
 			rotation = Math.flipAngleOverXAxis(cbox.rotation);
 		var flipper = entity.isFacingRight() ? 1 : -1;
-		var fixed_box_pos = new Point(flipper * box_center.x + entity_pos.x, box_center.y + entity_pos.y);
+		var fixed_box_pos = CollisionBoxRenderer._obj_cache.fixed_box_pos;
+		fixed_box_pos.x = flipper * box_center.x + entity_pos.x;
+		fixed_box_pos.y = box_center.y + entity_pos.y;
 		// Rotate this point about the *entity* pivot point
 		var entity_rotation = cbox.type != CollisionBoxType.LEDGEGRAB ? entity.getRotation() : 0;
+		// NOTE: most of the time this function is a no-op
 		fixed_box_pos = Util.transformPointAroundPivot(fixed_box_pos, entity_pivot, entity_rotation, entity_scale);
-
-		var fixed_box = new CollisionBox(new Rectangle(fixed_box_pos.x, fixed_box_pos.y, width, height), cbox.type);
-		fixed_box.rotation = entity_rotation + rotation;
-		return fixed_box;
+		var vfx_stats = CollisionBoxRenderer._obj_cache.vfx_stats;
+		vfx_stats.x = fixed_box_pos.x;
+		vfx_stats.y = fixed_box_pos.y;
+		vfx_stats.scaleX = (cbox.width * entity_scale.x) / 100;
+		vfx_stats.scaleY = (cbox.height * entity_scale.y) / 100;
+		vfx_stats.rotation = entity_rotation + rotation;
+		return vfx_stats;
 	},
 	_displayBox: function(cbox:CollisionBox, entity:Entity) {
-		var fixed_box = CollisionBoxRenderer._fixBox(cbox, entity);
-		var vfx:Vfx = match.createVfx(new VfxStats({
-			spriteContent: self.getResource().getContent("vfx"),
-			animation: "display_box",
-			x: fixed_box.x,
-			y: fixed_box.y,
-			scaleX: fixed_box.width / 100,
-			scaleY: fixed_box.height / 100,
-			rotation: fixed_box.rotation,
-			layer: "front",
-			timeout: 1,
-		}));
-		var color_filter:HsbcColorFilter = new HsbcColorFilter();
-		// TODO: Might be better performance to have a different box defined animation for each
-		//       color. Would also allow changing the opacity of each individually
-		// Colors: https://www.learnui.design/blog/the-hsb-color-system-practicioners-primer.html
-		color_filter.hue = Math.toRadians(switch (cbox.type) {
-			case CollisionBoxType.HIT: 0; // RED!
-			case CollisionBoxType.HURT: 60; // YELLOW-ish!
-			case CollisionBoxType.GRAB: 240; // BLUE!
-			case CollisionBoxType.LEDGEGRAB: 180;
-			case CollisionBoxType.REFLECT: 120;
-			case CollisionBoxType.ABSORB: 120;
-			case CollisionBoxType.COUNTER: 120;
-			case CollisionBoxType.SHIELD: 180;
-			case CollisionBoxType.CUSTOMA: 270;
-			case CollisionBoxType.CUSTOMB: 270;
-			case CollisionBoxType.CUSTOMC: 270;
-			default: 360; // TODO: should specially display
+		var vfx:Vfx = match.createVfx(CollisionBoxRenderer._calculateVfxStats(cbox, entity));
+		vfx.playFrame(switch (cbox.type) {
+			case CollisionBoxType.HIT: FRAME_COLORS.RED;
+			case CollisionBoxType.HURT: FRAME_COLORS.YELLOW;
+			case CollisionBoxType.GRAB: FRAME_COLORS.BLUE;
+			case CollisionBoxType.LEDGEGRAB: FRAME_COLORS.CYAN;
+			case CollisionBoxType.REFLECT: FRAME_COLORS.GREEN;
+			case CollisionBoxType.ABSORB: FRAME_COLORS.BLUE_GREEN;
+			case CollisionBoxType.COUNTER: FRAME_COLORS.YELLOW_GREEN;
+			case CollisionBoxType.SHIELD: FRAME_COLORS.CYAN;
+			case CollisionBoxType.CUSTOMA: FRAME_COLORS.PURPLE;
+			case CollisionBoxType.CUSTOMB: FRAME_COLORS.RED_PURPLE;
+			case CollisionBoxType.CUSTOMC: FRAME_COLORS.ROSE_PINK;
+			default: FRAME_COLORS.ORANGE;
 		});
-		// color_filter.hue = 0;
-		vfx.addFilter(color_filter);
 	},
 	_dumpInfo: function(cbox:CollisionBox, entity:Entity) {},
 	_showBoxesFor: (entities) -> {
 		for (entity in entities) {
-			// Do not show boxes for entites that are part of the stage
-			if (StageGlobals.entities.contains(entity))
+			if (CollisionBoxRenderer._blacklist.contains(entity))
 				continue;
-			for (boxType in BOX_TYPES) {
+			CollisionBoxRenderer._updateEntityStats(entity);
+			for (boxType in CollisionBoxRenderer.BOX_TYPES) {
 				if (!CollisionBoxRenderer._shouldRender(boxType))
 					continue;
 				var boxes = entity.getCollisionBoxes(boxType);
-				if (boxes != null) {
-					for (cbox in boxes) {
-						CollisionBoxRenderer._displayBox(cbox, entity);
-						CollisionBoxRenderer._dumpInfo(cbox, entity);
-					}
+				if (boxes == null)
+					continue;
+				for (cbox in boxes) {
+					CollisionBoxRenderer._displayBox(cbox, entity);
+					// CollisionBoxRenderer._dumpInfo(cbox, entity);
 				}
 			}
 		}
-	}
+	},
+};
+
+// Draw ECBs. Simply initialize w/ blacklist of entities to not render
+// Depends: StageTimer, match
+var EcbRenderer = {
+	ECB_POINT_TYPES: ["head", "left_hip", "foot", "right_hip"],
+	init: function(?blacklist, ?assists) {
+		StageTimer.addCallback(EcbRenderer._renderLoop);
+		if (blacklist != null) {
+			EcbRenderer._blacklist = blacklist;
+		}
+		EcbRenderer._assists = assists;
+	},
+	toggleAll: () -> {
+		EcbRenderer.toggleEntityType(EntityType.CHARACTER);
+		EcbRenderer.toggleEntityType(EntityType.PROJECTILE);
+		EcbRenderer.toggleEntityType(EntityType.CUSTOM_GAME_OBJECT);
+		return true;
+	},
+	toggleEntityType: (entity_type) -> {
+		var allowed_types = EcbRenderer._allowed_entity_types;
+		if (allowed_types.contains(entity_type)) {
+			allowed_types.remove(entity_type);
+		} else {
+			allowed_types.push(entity_type);
+		}
+		return true;
+	},
+	/// Private
+	_blacklist: [],
+	_assists: null,
+	_allowed_entity_types: [],
+	_cached_ecb_points: [
+		"head" => new Point(0, 0),
+		"left_hip" => new Point(0, 0),
+		"foot" => new Point(0, 0),
+		"right_hip" => new Point(0, 0),
+	],
+	_cached_point_vfx_stats: new VfxStats({
+		spriteContent: self.getResource().getContent("boxviewerVfx"),
+		animation: "ecb_indicators",
+		layer: "front",
+		timeout: 1,
+	}),
+	_cached_line_vfx_stats: new VfxStats({
+		spriteContent: self.getResource().getContent("boxviewerVfx"),
+		animation: "display_line",
+		layer: "front",
+		timeout: 1,
+	}),
+	_renderLoop: function() {
+		if (EcbRenderer._allowed_entity_types.contains(EntityType.CHARACTER))
+			EcbRenderer._showEcbsFor(match.getCharacters());
+		if (EcbRenderer._allowed_entity_types.contains(EntityType.PROJECTILE))
+			EcbRenderer._showEcbsFor(match.getProjectiles());
+		if (EcbRenderer._allowed_entity_types.contains(EntityType.CUSTOM_GAME_OBJECT))
+			EcbRenderer._showEcbsFor(EcbRenderer._assists);
+	},
+	_showEcbsFor: (entities) -> {
+		if (entities == null)
+			return;
+		for (entity in entities) {
+			if (EcbRenderer._blacklist.contains(entity))
+				continue;
+			EcbRenderer._displayEcb(entity);
+			// EcbRenderer._dumpInfo(entity);
+		}
+	},
+	_displayEcb: function(entity:Entity) {
+		var entity_x = entity.getX() + entity.getNetXVelocity();
+		var entity_y = entity.getY() + entity.getNetYVelocity();
+		var line_vfx_stats = EcbRenderer._cached_line_vfx_stats;
+		line_vfx_stats.animation = "display_line";
+		var renderLine = (point1, point2) -> {
+			// draw line between curr point and prev point
+			line_vfx_stats.x = Util.average(point1.x, point2.x) + entity_x;
+			line_vfx_stats.y = Util.average(point1.y, point2.y) + entity_y;
+			line_vfx_stats.scaleX = Math.getDistance(point1, point2) / 100;
+			line_vfx_stats.rotation = Math.flipAngleOverYAxis(Math.getAngleBetween(point1, point2));
+			var line_vfx:Vfx = match.createVfx(line_vfx_stats);
+			line_vfx.playFrame(FRAME_COLORS.ORANGE);
+		};
+		// TODO: Could render once and move vfx around ...
+		var ecb_point = EcbRenderer._cached_ecb_points["head"];
+		ecb_point.x = entity.getEcbHeadX();
+		ecb_point.y = entity.getEcbHeadY();
+		ecb_point = EcbRenderer._cached_ecb_points["left_hip"];
+		ecb_point.x = entity.getEcbLeftHipX();
+		ecb_point.y = entity.getEcbLeftHipY();
+		ecb_point = EcbRenderer._cached_ecb_points["foot"];
+		ecb_point.x = entity.getEcbFootX();
+		ecb_point.y = entity.getEcbFootY();
+		ecb_point = EcbRenderer._cached_ecb_points["right_hip"];
+		ecb_point.x = entity.getEcbRightHipX();
+		ecb_point.y = entity.getEcbRightHipY();
+		var point_vfx_stats = EcbRenderer._cached_point_vfx_stats;
+		var last_point = null;
+		for (ecb_point_type in EcbRenderer.ECB_POINT_TYPES) {
+			var ecb_point = EcbRenderer._cached_ecb_points[ecb_point_type];
+			point_vfx_stats.x = ecb_point.x + entity_x;
+			point_vfx_stats.y = ecb_point.y + entity_y;
+			var point_vfx:Vfx = match.createVfx(point_vfx_stats);
+			point_vfx.playFrameLabel(ecb_point_type);
+			if (last_point != null) {
+				renderLine(ecb_point, last_point);
+			}
+			last_point = ecb_point;
+		}
+		renderLine(last_point, EcbRenderer._cached_ecb_points[EcbRenderer.ECB_POINT_TYPES[0]]);
+	},
+	_dumpInfo: function(entity:Entity) {},
 };
 
 // Track the hitbox stats of the attacks done by provided character (Unused & Out-of-date)
@@ -346,16 +630,9 @@ var HitboxTracker = {
 	// Dump simple data about which frames the hitboxes are active
 	_dump_stats: () -> {
 		Engine.log("Dumping stats for last attack");
-		// _frame will be the frame after the last attack frame so subtract 1
-		Engine.log("num_frames=" + (HitboxTracker._frame - 1));
-		for (attack_id in HitboxTracker._hitbox_info.keys()) {
-			var hb_info = HitboxTracker._hitbox_info.get(attack_id);
-			for (hb_index in hb_info.stats.keys()) {
-				var seen_frames = hb_info.active_frames.get(hb_index);
-				Engine.log("attackId=" + attack_id + " hitbox#" + hb_index + " timesSeen=" + seen_frames);
-			}
-		}
-		Engine.log("=====================================================================");
+		Engine.log("num_frames =" + HitboxTracker._frame);
+		printAllHitboxData(HitboxTracker._hitbox_info);
+		return;
 	},
 	// Reset tracking information
 	_reset: () -> {
@@ -395,7 +672,7 @@ var SlowDownHandler = {
 			SlowDownHandler._char = Util.getP1();
 			SlowDownHandler._char_initialized = true;
 		}
-		var char: Character = SlowDownHandler._char;
+		var char:Character = SlowDownHandler._char;
 		if (SlowDownHandler._slow_amount > 0 && char != null) {
 			if (char.inStateGroup(CStateGroup.ATTACK) || char.inState(CState.GRAB))
 				match.freezeScreen(SlowDownHandler._slow_amount, []);
@@ -433,7 +710,7 @@ var FloatHandler = {
 };
 
 // Manage Buttons which can perform various actions depending on provided callbacks
-// Depends: StageTimer, StageGlobals, Util, match
+// Depends: StageTimer, Util, match
 var ButtonHandler = {
 	BUTTONS: [
 		"SPECIAL",
@@ -442,9 +719,9 @@ var ButtonHandler = {
 		"STAGE",
 		"ATT_SLOW",
 		"ATT_FLOAT",
-		"UNKNOWN_1",
-		"UNKNOWN_2",
-		"UNKNOWN_3",
+		"ECB",
+		"TURRET",
+		"ASSIST",
 	],
 	BUTTON_STATS: [
 		"SPECIAL" => {
@@ -472,15 +749,15 @@ var ButtonHandler = {
 			position: [Util.average(114, 260), -208],
 			default_anim: "off",
 		},
-		"UNKNOWN_1" => {
+		"ECB" => {
 			position: [Util.average(-245, -99), -319],
 			default_anim: "off",
 		},
-		"UNKNOWN_2" => {
+		"TURRET" => {
 			position: [Util.average(-60, 82), -319],
 			default_anim: "off",
 		},
-		"UNKNOWN_3" => {
+		"ASSIST" => {
 			position: [Util.average(114, 260), -319],
 			default_anim: "off",
 		},
@@ -497,11 +774,7 @@ var ButtonHandler = {
 			ButtonHandler._spawn_button(name, _toggle_handlers.exists(name) ? _toggle_handlers.get(name) : empty_handler);
 		}
 	},
-	setButtonAnim: (name, anim) -> {
-		var i = ButtonHandler.BUTTONS.indexOf(name);
-		if (i >= 0 && i < ButtonHandler._buttons.length && ButtonHandler._buttons[i].hasAnimation(anim))
-			ButtonHandler._buttons[i].playAnimation(anim);
-	},
+	getButtonObjects: () -> ButtonHandler._buttons,
 	openDialogueFor: (button_name, choice_cb) -> {
 		if (button_name != "ATT_SLOW")
 			return Util.throwError("Trying to open dialogue for unsupported button!");
@@ -558,7 +831,7 @@ var ButtonHandler = {
 			clean_up_dialogue();
 		}, true);
 		ButtonHandler._curr_dialogue = match.createVfx(new VfxStats({
-			spriteContent: self.getResource().getContent("vfx"),
+			spriteContent: self.getResource().getContent("boxviewerVfx"),
 			animation: "slowdown_select",
 			x: char.getX() + char.getEcbFootX(),
 			y: char.getY() + char.getEcbFootY(),
@@ -603,25 +876,27 @@ var ButtonHandler = {
 		b.playAnimation(button_stats.default_anim);
 		b.setX(button_stats.position[0]);
 		b.setY(button_stats.position[1] + ButtonHandler.BUTTON_Y_OFFSET);
-		b.addEventListener(GameObjectEvent.HIT_RECEIVED, function(e:GameObjectEvent) {
+		var onPressed = function(e:GameObjectEvent) {
 			// Ignore hitboxes that wouldn't flinch anyways
 			var hitbox = e.data.hitboxStats;
-			if (hitbox.flinch == false)
+			if (b.getGameObjectStatsMetadata().lastToggledBy == hitbox.attackId)
 				return;
+			if (!hitbox.flinch)
+				return;
+			b.updateGameObjectStatsMetadata({lastToggledBy: hitbox.attackId});
 
 			Engine.log("Toggling " + name + " button");
 			AudioClip.play(GlobalSfx.STRONG_CLICK);
 			var char = e.data.foe.getRootOwner();
-			if (char == null || char.getType() != EntityType.CHARACTER)
+			if (char == null || char != Util.getP1())
 				return;
-
 			if (toggle_handler()) {
 				var isOn = (b.getAnimation() == "on");
 				var toggleAnim = isOn ? "off" : "on";
 				b.playAnimation(toggleAnim);
 			}
-		}, {persistent: true});
-		StageGlobals.entities.push(b);
+		};
+		b.addEventListener(GameObjectEvent.COUNTER, onPressed, {persistent: true});
 		ButtonHandler._buttons.push(b);
 	},
 };
@@ -636,13 +911,21 @@ var StageVisibilityHandler = {
 	toggleVisibility: () -> {
 		StageVisibilityHandler._visible = !StageVisibilityHandler._visible;
 		self.playLabel(StageVisibilityHandler._visible ? "visible" : "invisible");
+		camera.getBackgroundContainers()[1].visible = StageVisibilityHandler._visible;
+		for (cb in StageVisibilityHandler._callbacks) {
+			cb(StageVisibilityHandler._visible);
+		}
 		return true;
 	},
+	isVisible: () -> StageTimer._visible,
+	addCallback: (cb) -> StageVisibilityHandler._callbacks.push(cb),
+	/// private
 	_visible: true,
+	_callbacks: [],
 };
 
 // Manage moving platform that moves P1 between the different stage regions
-// Depends: StageTimer, StageGlobals, Util
+// Depends: StageTimer, Util
 var ElevatorHandler = {
 	WAIT_TIME: 300,
 	MAX_Y: -977.5,
@@ -733,7 +1016,7 @@ var ElevatorHandler = {
 			clean_up_dialogue();
 		}, true);
 		ElevatorHandler._curr_dialogue = match.createVfx(new VfxStats({
-			spriteContent: self.getResource().getContent("vfx"),
+			spriteContent: self.getResource().getContent("boxviewerVfx"),
 			animation: "elevator_select",
 			x: char.getX() + char.getEcbFootX(),
 			y: char.getY() + char.getEcbFootY(),
@@ -889,7 +1172,7 @@ var CameraViewHelper = {
 				if (!CameraViewHelper._isInRegion(region, other_char) && !other_char.inState(CState.KO)) {
 					if (other_char.inStateGroup(CStateGroup.LEDGE)) {
 						other_char.releaseLedge();
-					} else if (other_char.inStateGroup(CStateGroup.HURT_HEAVY)) {
+					} else if (other_char.inStateGroup(CStateGroup.HURT_HEAVY) || other_char.inState(CState.HELD)) {
 						// Leave hurt characters alone
 					} else {
 						other_char.setX(region_stats.teleport_pos.x);
@@ -933,12 +1216,136 @@ var CameraViewHelper = {
 	},
 };
 
+// When enabled, spawn assists as custom game objects. Entity will be removed from list when disposed and added when spawned.
+// NOTE: getting custom game objects manually doesn't work, and custom game object list also errors until both custom game object & assist has been spawned?
+//       Using this method ensures the data is always shown
+var AssistHandler = {
+	init: function(?assist_list) {
+		AssistHandler._assists = assist_list;
+		StageTimer.addCallback(AssistHandler._tick);
+		match.addEventListener(AssistEvent.CHARGED, (e) -> {
+			AssistHandler._setAssistCharge(e.data.character);
+		}, {persistent: true});
+	},
+	toggle: function() {
+		AssistHandler._enabled = !AssistHandler._enabled;
+		if (AssistHandler._enabled) {
+			for (char in match.getCharacters()) {
+				if (char.getAssistCharge() == 1)
+					AssistHandler._setAssistCharge(char);
+				AssistHandler._input_listeners.push(Util.onButtonsHeld(char, Buttons.ACTION, () -> {
+					AssistHandler._handleInput(char);
+				}, true));
+			}
+		} else {
+			// Restore assist charge
+			for (char in match.getCharacters()) {
+				var char_meta = char.getGameObjectStatsMetadata();
+				if (char_meta != null && char_meta.bv_hasAssistCharge)
+					char.setAssistCharge(1);
+			}
+			for (listener in AssistHandler._input_listeners) {
+				StageTimer.removeCallback(listener);
+			}
+		}
+		return true;
+	},
+	///private
+	_assists: null,
+	_input_listeners: [],
+	_enabled: false,
+	_assist_box: null,
+	_tick: () -> {
+		if (!AssistHandler._enabled)
+			return;
+		for (char in match.getCharacters()) {
+			var char_meta = char.getGameObjectStatsMetadata();
+			if (char_meta != null && char_meta.bv_hasAssistCharge) {
+				char.setAssistCharge(0);
+			}
+		}
+	},
+	_handleInput: (char) -> {
+		var char_meta = char.getGameObjectStatsMetadata();
+		if (char_meta == null || !char_meta.bv_hasAssistCharge)
+			return;
+		// If can't use assist, ignore input (no buffer or iasa/etc ;-;)
+		if (char.inHurtState() || char.inStateGroup(CStateGroup.ATTACK) || char.inStateGroup(CStateGroup.GRAB))
+			return;
+		char.toState(CState.ASSIST_CALL);
+		var assist_obj = match.createCustomGameObject(Util.getAssistId(char), char);
+		if (AssistHandler._assists != null)
+			AssistHandler._assists.push(assist_obj);
+		AssistHandler._listenForDispose(assist_obj);
+		char.updateGameObjectStatsMetadata({bv_hasAssistCharge: false});
+		AssistHandler._assist_box.removeChild(char.getDamageCounterAssistSprite());
+		AssistHandler._assist_box.dispose();
+	},
+	_setAssistCharge: (char) -> {
+		// set assist charge manually!
+		if (!AssistHandler._enabled)
+			return;
+		var char_meta = char.getGameObjectStatsMetadata();
+		// Set the metadata to a non-null value so game doesn't crash
+		if (char_meta == null)
+			char.updateGameObjectStats({metadata: {}});
+		char.updateGameObjectStatsMetadata({bv_hasAssistCharge: true});
+		var assist_box = Container.create();
+		assist_box.addChild(char.getDamageCounterAssistSprite());
+		char.getDamageCounterContainer().addChild(assist_box);
+		assist_box.x = 108;
+		assist_box.y = 13;
+		AssistHandler._assist_box = assist_box;
+	},
+	_listenForDispose: (assist_obj) -> {
+		if (AssistHandler._assists == null)
+			return;
+		// Should not fire if pressed this frame.
+		// TODO: This should probably be an option
+		var poll_for_disposed;
+		poll_for_disposed = StageTimer.addCallback(() -> {
+			if (assist_obj.isDisposed()) {
+				AssistHandler._assists.remove(assist_obj);
+				StageTimer.removeCallback(assist_obj);
+			}
+		});
+	},
+};
+
+var TurretHandler = {
+	// relative to bottom right corner
+	START_X: -742 + 10,
+	START_Y: 838 - 50,
+	init: function(?entity_list) {
+		var turret = match.createProjectile(self.getResource().getContent("boxviewerTurret"));
+		turret.setX(TurretHandler.START_X);
+		turret.setY(TurretHandler.START_Y);
+		TurretHandler._turret = turret;
+		if (entity_list != null)
+			entity_list.push(turret);
+	},
+	getTurret: () -> TurretHandler._turret,
+	toggleMode: () -> {
+		TurretHandler._turret.exports.toggleMode();
+		return true;
+	},
+	setVisible: (visible) -> {
+		TurretHandler._turret.setVisible(visible);
+	},
+	/// private
+	_turret: null,
+};
+
 function initialize() {
+	self.exports = {
+		exception_list: StageGlobals.entities
+	};
+
 	ButtonHandler.init([
 		"HURT" => () -> CollisionBoxRenderer.toggleRender(CollisionBoxType.HURT),
 		"HIT" => () -> CollisionBoxRenderer.toggleRender(CollisionBoxType.HIT),
 		"SPECIAL" => () -> {
-			for (boxType in BOX_TYPES) {
+			for (boxType in CollisionBoxRenderer.BOX_TYPES) {
 				if (![CollisionBoxType.HIT, CollisionBoxType.HURT].contains(boxType)) {
 					CollisionBoxRenderer.toggleRender(boxType);
 				}
@@ -952,15 +1359,25 @@ function initialize() {
 			return false;
 		},
 		"ATT_FLOAT" => FloatHandler.toggleFloat,
+		"ECB" => EcbRenderer.toggleAll,
+		"TURRET" => TurretHandler.toggleMode,
+		"ASSIST" => AssistHandler.toggle,
 	]);
+	for (button in ButtonHandler.getButtonObjects()) {
+		StageGlobals.entities.push(button);
+	}
 
 	StageVisibilityHandler.init();
 	StageTimer.init();
-	CollisionBoxRenderer.init();
+	CollisionBoxRenderer.init(StageGlobals.entities, StageGlobals.assists);
+	EcbRenderer.init(StageGlobals.entities, StageGlobals.assists);
 	SlowDownHandler.init();
 	FloatHandler.init();
 	ElevatorHandler.init();
 	CameraViewHelper.init();
+	AssistHandler.init(StageGlobals.assists);
+	TurretHandler.init(StageGlobals.entities);
+	StageVisibilityHandler.addCallback(TurretHandler.setVisible);
 }
 
 function update() {
@@ -987,29 +1404,53 @@ function update() {
 // - No good way to prevent character from using inputs and still be able to read them
 //    - uninitialized state allows dropthrough?
 //    - disabled state locks to last input
+// - no call to get assists and getCustomGameObjects is broken
 
 // Playtesters: Nuova, Sky, Lood, Exo, Peace, Salt, Kactus
 // TODO (post-release):
 // ===== Tier 1 (Functional) =====
-// - empty custom game object to workaround getCustomGameObjects() bug
-// - ECB display
-// - add grid to BG? or BG parallax idk
-//     - should have reference for stage widths
+// - [x] display for when assist is charged when handled by stage
+// - [x] ECB display
+// - [x] add grid to BG? or BG parallax idk
+//     - [ ] should have reference for stage widths
 //     - see: MVS (https://multiversus.fandom.com/wiki/Training_Room?file=Training.png), Ultiamte (https://ssb.wiki.gallery/images/1/14/Training_stage.jpg)
-// - body armour display
+// - [ ] body armour display
 //
 // ===== Tier 2 (Usability) =====
-// - performance
-// - Cooldown between button presses
-// - disabled buttons
-// - hazard variant is just FD? Or some other differences
+// - [x] performance
+//     - Some attempts were made, but improvements weren't anything crazy. No clear room for improvement left ..
+// - [/] Cooldown between button presses
+// - [x] disabled buttons
+// - [ ] hazard variant is just FD? Or some other differences
 //      - move between variants using options maybe on regular?
 //      - Need to figure out how to handle teleport plat on all variants tho.
 //      - or just elevator ease riding
-// - buttons should be intangible probably
 //
 // ===== Tier 3 (Other) =====
-// - Force buttons to position (so they can't be moved)
-// - correlate w/ hitbox stats (and display)
-// - boxes on menu image o.O
-// - Implement UNKOWN Buttons
+// - [x] Force buttons to position (so they can't be moved)
+// - [ ] correlate w/ hitbox stats (and display)
+// - [ ] boxes on menu image o.O
+// - [x] Implement UNKOWN Buttons
+// - [ ] hide character
+// - [/] video for all GlobalVfx/Sfx
+// - [x] Ability to test counters/reflectors/absorbers
+// Options Redesign:
+// Standing on the options platform spawns a fullscreen menu.
+// Menu options:
+// - stage layout (fd, bf, rivals training, ult training)
+//     - if using a normal stage, options will open on revive?
+//     - should consider an alternate imput as well and have that as optional
+//     - Otherwise there'll a platform for it (button or time on plat?)
+// - boxes to enable/disable (collision box types & ecb)
+// - hide stage/character/projectiles
+// - assists (enable handling, instant charge)
+// - slowdown (amount, on attack? constant?)
+// - framedata
+// - input display
+// - character stats
+// - training mode features:
+//     - hitstun display, body armour display
+// Design:
+// - pages for top level
+//    - can move between sections of page
+//    - press attack to select/unselect, special/shield to go back
