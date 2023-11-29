@@ -6,8 +6,10 @@
         "d852c28a-9ab3-4063-993e-2a8dd95b98a5",
         "f8a7e04c-f524-44af-9458-b6db5f6bb675",
         "d7fab402-29b7-4541-be5d-8103609a8eea",
-        "996a0894-a33b-44e9-a980-5bd3ba189c6d",
+        "8e29f380-eb29-4c42-ae9d-7cfcbd60d0d1",
         "4d897059-1f8f-43ca-8615-fa2b8d17584a",
+        "996a0894-a33b-44e9-a980-5bd3ba189c6d",
+        "c39d3a44-890b-4e84-ab9d-0bf0998e7a36",
         "a47cfefd-aff4-4469-a060-679f09bdcdb2",
         "41a370a0-6f0b-4110-8422-f0305495bd20",
         "1c6f198f-337c-4d57-8a4b-aff5eee8da04",
@@ -18,6 +20,7 @@
         "f116ecd4-82d3-48db-8f54-f325c0e2c009",
         "9ef5db8b-463a-4606-a580-98600f41542f",
         "d2979404-4345-4070-a7f2-bb39ef167ad0",
+        "49251c1a-405b-453f-8a44-9ac97cc911bb",
         "9634150e-64d6-4b99-a622-fab30c523f81",
         "4ca54e29-2e0a-4ded-abfb-65d322d30216",
         "9e69d5a9-a8d7-48f8-bd09-3ffa93f39a9c",
@@ -655,6 +658,40 @@
       "tweenType": "LINEAR",
       "tweened": false,
       "type": "IMAGE"
+    },
+    {
+      "$id": "99acb862-7a15-4d85-8166-a98c542891fe",
+      "length": 2,
+      "pluginMetadata": {
+      },
+      "type": "CONTAINER"
+    },
+    {
+      "$id": "49b3a3c8-986c-4f47-89bb-da92fb670d28",
+      "length": 2,
+      "pluginMetadata": {
+      },
+      "type": "CONTAINER"
+    },
+    {
+      "$id": "900d0c35-f934-4c68-ac1e-0041b908a9c2",
+      "length": 1,
+      "pluginMetadata": {
+      },
+      "symbol": null,
+      "tweenType": "LINEAR",
+      "tweened": false,
+      "type": "IMAGE"
+    },
+    {
+      "$id": "5cf36eed-3401-4363-a017-af1f8faaddc9",
+      "length": 1,
+      "pluginMetadata": {
+      },
+      "symbol": "04d264eb-6671-4cc6-8046-2d7e6e5933fe",
+      "tweenType": "LINEAR",
+      "tweened": false,
+      "type": "IMAGE"
     }
   ],
   "layers": [
@@ -809,7 +846,7 @@
         "558dcc6a-ebb5-40d0-a2b9-b45c158cfd58",
         "c37f3c17-fe1f-4fb2-9b41-75bf00d1cd60"
       ],
-      "locked": true,
+      "locked": false,
       "name": "BG Stage Image",
       "pluginMetadata": {
       },
@@ -822,10 +859,10 @@
         "044c6301-4f5a-4d05-8d51-7bf459fb11c9"
       ],
       "locked": true,
-      "name": "Background Structures",
+      "name": "Background Behind",
       "pluginMetadata": {
         "com.fraymakers.FraymakersMetadata": {
-          "containerType": "BACKGROUND_STRUCTURES_CONTAINER"
+          "containerType": "BACKGROUND_BEHIND_CONTAINER"
         }
       },
       "type": "CONTAINER"
@@ -1474,6 +1511,49 @@
       "pluginMetadata": {
       },
       "type": "IMAGE"
+    },
+    {
+      "$id": "49251c1a-405b-453f-8a44-9ac97cc911bb",
+      "hidden": false,
+      "keyframes": [
+        "99acb862-7a15-4d85-8166-a98c542891fe"
+      ],
+      "locked": false,
+      "name": "Foreground Front",
+      "pluginMetadata": {
+        "com.fraymakers.FraymakersMetadata": {
+          "containerType": "FOREGROUND_FRONT_CONTAINER"
+        }
+      },
+      "type": "CONTAINER"
+    },
+    {
+      "$id": "c39d3a44-890b-4e84-ab9d-0bf0998e7a36",
+      "hidden": false,
+      "keyframes": [
+        "49b3a3c8-986c-4f47-89bb-da92fb670d28"
+      ],
+      "locked": true,
+      "name": "Background Structures",
+      "pluginMetadata": {
+        "com.fraymakers.FraymakersMetadata": {
+          "containerType": "BACKGROUND_STRUCTURES_CONTAINER"
+        }
+      },
+      "type": "CONTAINER"
+    },
+    {
+      "$id": "8e29f380-eb29-4c42-ae9d-7cfcbd60d0d1",
+      "hidden": false,
+      "keyframes": [
+        "900d0c35-f934-4c68-ac1e-0041b908a9c2",
+        "5cf36eed-3401-4363-a017-af1f8faaddc9"
+      ],
+      "locked": false,
+      "name": "BG Stage Behind",
+      "pluginMetadata": {
+      },
+      "type": "IMAGE"
     }
   ],
   "paletteMap": {
@@ -1483,7 +1563,7 @@
   "pluginMetadata": {
     "com.fraymakers.FraymakersMetadata": {
       "objectType": "STAGE",
-      "version": "0.1.2"
+      "version": "0.3.0"
     }
   },
   "plugins": [
@@ -2183,6 +2263,21 @@
       "$id": "b24fdf1a-d850-43aa-801b-2c40b2048cd6",
       "alpha": 0,
       "imageAsset": "0f081d2b-7808-43a9-a883-2653e0a046ec",
+      "pivotX": 950,
+      "pivotY": 1775,
+      "pluginMetadata": {
+      },
+      "rotation": 0,
+      "scaleX": 1,
+      "scaleY": 1,
+      "type": "IMAGE",
+      "x": -950,
+      "y": -1775
+    },
+    {
+      "$id": "04d264eb-6671-4cc6-8046-2d7e6e5933fe",
+      "alpha": 1,
+      "imageAsset": "f2be12db-8865-482b-a436-6985cc8cf215",
       "pivotX": 950,
       "pivotY": 1775,
       "pluginMetadata": {

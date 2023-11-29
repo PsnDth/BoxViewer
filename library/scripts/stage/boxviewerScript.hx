@@ -358,7 +358,7 @@ var CollisionBoxRenderer = {
 		vfx_stats: new VfxStats({
 			spriteContent: self.getResource().getContent("boxviewerVfx"),
 			animation: "display_box",
-			layer: "front",
+			layer: VfxLayer.CHARACTERS_FRONT,
 			timeout: 1
 		}),
 	},
@@ -385,7 +385,7 @@ var CollisionBoxRenderer = {
 			entity_scale.scale(1, height_scale);
 		}
 
-		var should_apply_vel = (entity.getHitstop() == 0);
+		var should_apply_vel = (entity.getHitstop() == 0) && !entity.inState(CState.HELD);
 		var entity_pos = CollisionBoxRenderer._obj_cache.entity_pos;
 		entity_pos.x = entity.getX() + should_apply_vel * entity.getNetXVelocity();
 		entity_pos.y = entity.getY() + should_apply_vel * entity.getNetYVelocity();
@@ -503,13 +503,13 @@ var EcbRenderer = {
 	_cached_point_vfx_stats: new VfxStats({
 		spriteContent: self.getResource().getContent("boxviewerVfx"),
 		animation: "ecb_indicators",
-		layer: "front",
+		layer: VfxLayer.CHARACTERS_FRONT,
 		timeout: 1,
 	}),
 	_cached_line_vfx_stats: new VfxStats({
 		spriteContent: self.getResource().getContent("boxviewerVfx"),
 		animation: "display_line",
-		layer: "front",
+		layer: VfxLayer.CHARACTERS_FRONT,
 		timeout: 1,
 	}),
 	_renderLoop: function() {
@@ -651,6 +651,101 @@ var HitboxTracker = {
 	 * } }
 	 */
 	_hitbox_info: new IntMap(),
+};
+
+// Track the hitbox stats of the attacks done by provided character (Unused & Out-of-date)
+// Depends: StageTimer
+var CollisionBoxTracker = {
+	// Set up variables and listeners
+	VALID_BOX_TYPES: [
+		CollisionBoxType.HIT,
+		CollisionBoxType.GRAB,
+		CollisionBoxType.REFLECT,
+		CollisionBoxType.COUNTER,
+		CollisionBoxType.ABSORB,
+	],
+	init: (char) -> {
+		CollisionBoxTracker._char = char;
+		StageTimer.addCallback(CollisionBoxTracker._frame_loop);
+		char.addEventListener(EntityEvent.STATE_CHANGE, CollisionBoxTracker._state_handler, {persistent: true});
+	},
+	/// Private
+	// Increment the frame if currently counting frames
+	_frame_loop: () -> {
+		if (CollisionBoxTracker._should_count)
+			CollisionBoxTracker._frame += 1;
+		// Engine.log("frame=" + CollisionBoxTracker._frame);
+		var char = CollisionBoxTracker._char;
+		// Engine.log("animation=" + char.getAnimation() + " on frame=" + CollisionBoxTracker._frame);
+		var attack_id = char.getAnimationStat("attackId");
+		if (attack_id == -1) return;
+		// Engine.log(">>has attackid");
+		for (box_type in CollisionBoxTracker.VALID_BOX_TYPES) {
+			var boxes = char.getCollisionBoxes(box_type);
+			if (boxes == null) continue;
+			// Engine.log(">>has box w/ type");
+			for (cbox in boxes) {
+				CollisionBoxTracker._seen_callback(attack_id, cbox);
+			}
+		}
+	},
+	// When the character changes states, dump and reset if was tracking attack stats.
+	// Otherwise start tracking if this is an attack
+	_state_handler: () -> {
+		if (CollisionBoxTracker._should_count) {
+			CollisionBoxTracker._dump_stats();
+			CollisionBoxTracker._reset();
+		}
+		var char:Character = CollisionBoxTracker._char;
+
+		CollisionBoxTracker._should_count = char.inStateGroup(CStateGroup.ATTACK) || char.inStateGroup(CStateGroup.GRAB);
+	},
+	// When a hitbox connects with an entity, track when it happened and what were the stats
+	_seen_callback: function(attackId:Int, cbox:CollisionBox) {
+		// Create a new info struct if necessary
+		if (!CollisionBoxTracker._cb_info.exists(attackId)) {
+			CollisionBoxTracker._cb_info.set(attackId, {
+				stats: new IntMap(),
+				active_frames: new IntMap(),
+			});
+		}
+		var cb_info = CollisionBoxTracker._cb_info.get(attackId);
+		// Create stats/active_frame info for hitbox index if necesary
+		if (!cb_info.stats.exists(cbox.depth)) {
+			// Store the hitbox stats for this attackId/hitbox index pair.
+			// Even if it reappears, the stats should be the same (minus some populated values like damage/angle)
+			cb_info.stats.set(cbox.depth, {type: cbox.type, depth: cbox.depth});
+			cb_info.active_frames.set(cbox.depth, []);
+		}
+		// Store the frames that this attackId/hitbox index pair was seen.
+		// Provides a full sense of how many hitboxes there will be
+		cb_info.active_frames.get(cbox.depth).push(CollisionBoxTracker._frame);
+		Engine.log("saw attack=" + attackId + " box#" + cbox.depth + " type=" + Util.collisionBoxTypeToString(cbox.type));
+	},
+	// Dump simple data about which frames the hitboxes are active
+	_dump_stats: () -> {
+		Engine.log("Dumping stats for last attack");
+		Engine.log("num_frames =" + CollisionBoxTracker._frame);
+		printAllCollisionBoxData(CollisionBoxTracker._cb_info);
+		return;
+	},
+	// Reset tracking information
+	_reset: () -> {
+		CollisionBoxTracker._frame = 0;
+		CollisionBoxTracker._should_count = false;
+		CollisionBoxTracker._cb_info.clear();
+	},
+	_frame: 0,
+	_should_count: false,
+	_char: null,
+
+	/**
+	 * { [attackId: Int]: { 
+	 *     stats: {[hitboxIndex: int]: {type: CollisionBoxType, layer: int}}, 
+	 *     active_frames: {[hitboxIndex: int]: Int[]} 
+	 * } }
+	 */
+	_cb_info: new IntMap(),
 };
 
 // Draw collision (hurt, hit, grab, etc.) boxes as vfx w/ different colours. Simply initialize w/ blacklist of entities to not render
@@ -835,7 +930,7 @@ var ButtonHandler = {
 			animation: "slowdown_select",
 			x: char.getX() + char.getEcbFootX(),
 			y: char.getY() + char.getEcbFootY(),
-			layer: "front",
+			layer: VfxLayer.CHARACTERS_FRONT,
 		}));
 		self.getForegroundEffectsContainer().addChild(ButtonHandler._curr_dialogue.getViewRootContainer());
 		ButtonHandler._curr_dialogue.playFrame(ButtonHandler._next_option_idx + 1);
@@ -1020,7 +1115,7 @@ var ElevatorHandler = {
 			animation: "elevator_select",
 			x: char.getX() + char.getEcbFootX(),
 			y: char.getY() + char.getEcbFootY(),
-			layer: "front",
+			layer: VfxLayer.CHARACTERS_FRONT,
 		}));
 		self.getForegroundEffectsContainer().addChild(ElevatorHandler._curr_dialogue.getViewRootContainer());
 		ElevatorHandler._curr_dialogue.playFrame(ElevatorHandler._next_target + 1);
