@@ -198,7 +198,7 @@
   "pluginMetadata": {
     "com.fraymakers.FraymakersMetadata": {
       "objectType": "LINE_SEGMENT_STRUCTURE",
-      "version": "0.1.2"
+      "version": "0.3.0"
     }
   },
   "plugins": [

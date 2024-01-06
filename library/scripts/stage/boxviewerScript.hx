@@ -135,6 +135,120 @@ function printHitboxData(idx, hitbox_stats, frame_string) {
 	Engine.log(current_hitbox_stats_extra);
 }
 
+var TextContainer = {
+    BASE_FONT_SIZE: 14, // editundo is 14 in aseprite, sbh3 is ripped from game but is approximately same character height so probably same size if not 13. 
+    FONT_ENTITY: self.getResource().getContent("font"),
+    DEFAULT_FONT: "editundo",
+    COLORS: {
+        WHITE: 0xFFFFFF,
+        BLACK: 0x000000,
+    },
+    _createColorShader: function(color) {
+        var shader = new RgbaColorShader();
+        shader.color = color;
+        shader.redMultiplier = 1.0/3.0;
+        shader.greenMultiplier = 1.0/2.0;
+        shader.blueMultiplier = 1;
+        return shader;
+    },
+
+    create: function(content, ?params) {
+        if (params == null) params = {};
+        function valueOr(param, default_val) {
+            return param == null ? default_val : param;
+        }
+        var font = valueOr(params.font, TextContainer.DEFAULT_FONT);
+        var size_multiplier = valueOr(params.font_size, TextContainer.BASE_FONT_SIZE);
+        if (valueOr(params.size_as_height, false)) {
+            var char_test =  Sprite.create(TextContainer.FONT_ENTITY);
+            char_test.currentAnimation = font;
+            size_multiplier = size_multiplier/char_test.height;
+            char_test.dispose();
+        } else {
+            size_multiplier = size_multiplier/TextContainer.BASE_FONT_SIZE;
+        }
+
+        var textbox_container = Container.create();
+        var self;
+        self = {
+            //
+            _sprites: [],
+            _textbox: textbox_container,
+            _size_multiplier: size_multiplier,
+            _curr_content: "",
+            _color: null,
+            _color_shader: null,
+            //
+            refreshContainer: function() {
+                self._sprites = [];
+                self._textbox.dispose();
+                self._textbox = Container.create();
+                var old_content = self._curr_content;
+                self.updateContent(old_content);
+            },
+            updateContent: function (content) {
+                if (content == self._curr_content) return;
+                self._curr_content = content;
+                if (self._textbox.isDisposed()) return;
+                if (self._sprites.length > 0) {
+                    for (char_sprite in self._sprites) {
+                        self._textbox.removeChild(char_sprite);
+                        char_sprite.dispose();
+                    }
+                    self._color_shader = null;
+                }
+                self._sprites = Sprite.createBatch(
+                    content.length,
+                    TextContainer.FONT_ENTITY,
+                    font,
+                    0,
+                    0,
+                    self._textbox
+                );
+                self._textbox.scaleX = camera.getZoomScaleX();
+                self._textbox.scaleY = camera.getZoomScaleY();
+                var expected_width = 0;
+                for (char_idx in 0...content.length) {
+                    var char_code = content.charCodeAt(char_idx);
+                    self._sprites[char_idx].currentFrame = char_code;
+                    self._sprites[char_idx].visible = true;
+                    self._textbox.addChild(self._sprites[char_idx]);
+                    self._sprites[char_idx].x = expected_width ;
+                    expected_width += self._sprites[char_idx].width / camera.getZoomScaleX() + 1; 
+                }
+                if (self._color != null) self.setColor(self._color);
+                self._textbox.scaleX = size_multiplier;
+                self._textbox.scaleY = size_multiplier;
+            },
+            getContainer: () -> self._textbox,
+            getContent: () -> self._curr_content,
+            dispose: function () {
+                self._textbox.dispose();
+            },
+            setColor: function(color) {
+                if (self._color_shader != null)
+                    self.removeShader(color);
+                self._color_shader = TextContainer._createColorShader(color);
+                self.addShader(self._color_shader);
+                self._color = color;
+            },
+            addShader: function(shader: Shader) {
+                for (sprite in self._sprites) {
+                    sprite.addShader(shader);
+                }
+            },
+            removeShader: function(shader: Shader) {
+                for (sprite in self._sprites) {
+                    sprite.removeShader(shader);
+                }
+            },
+        };
+        self.updateContent(content);
+        if (params.color != null) self.setColor(params.color);
+        return self;
+    },
+};
+
 var Util = {
 	getP1: inline function() {
 		var players = match.getCharacters().filter((c) -> !c.getPlayerConfig().cpu);
@@ -169,6 +283,27 @@ var Util = {
 			case BodyStatus.LAUNCH_ARMOR: "LAUNCH_ARMOR";
 			case BodyStatus.NONE: "NONE";
 			case BodyStatus.SUPER_ARMOR: "SUPER_ARMOR";
+			default: "N/A";
+		}
+	},
+	angleToString: (angle) -> {
+		switch (angle) {
+			case SpecialAngle.AUTOLINK_STRONGER: "AUTOLINK_STRONGER";
+			case SpecialAngle.AUTOLINK_STRONGEST: "AUTOLINK_STRONGEST";
+			case SpecialAngle.AUTOLINK_WEAK: "AUTOLINK_WEAK";
+			case SpecialAngle.DAMAGE: "DAMAGE";
+			case SpecialAngle.DEFAULT: "DEFAULT";
+			case SpecialAngle.RANDOM: "RANDOM";
+			case SpecialAngle.RANDOM_UP: "RANDOM_UP";
+			case SpecialAngle.RIVALS: "RIVALS";
+			default: "" + angle;
+		}
+	},
+	tumbleTypeToString: (tumbleType) -> {
+		switch(tumbleType) {
+			case TumbleType.ALWAYS: "ALWAYS";
+			case TumbleType.AUTO: "AUTO";
+			case TumbleType.NEVER: "NEVER";
 			default: "N/A";
 		}
 	},
@@ -282,6 +417,7 @@ var Util = {
 		var assist = char.getPlayerConfig().assist;
 		return assist.namespace + "::" + assist.resourceId + "." + assist.contentId;
 	},
+	valueOr: (value, fallback) -> value == null ? fallback : value,
 };
 
 var StageGlobals = {
@@ -296,13 +432,24 @@ var StageGlobals = {
 var StageTimer = {
 	// init: () -> match.addEventListener(MatchEvent.TICK_START, StageTimer._tick, {persistent: true}),
 	init: () -> {},
-	addCallback: (cb) -> StageTimer._callbacks.contains(cb) ? cb : StageTimer._callbacks[StageTimer._callbacks.push(cb) - 1],
-	removeCallback: (cb) -> StageTimer._callbacks.remove(cb),
+	addCallback: (cb) -> StageTimer._callbacks.contains(cb) ? cb : StageTimer._next_callbacks[StageTimer._next_callbacks.push(cb) - 1],
+	removeCallback: (cb) -> StageTimer._callbacks.remove(cb) || StageTimer._next_callbacks.remove(cb),
 	/// Private
 	_tick: () -> {
+		if (!StageTimer.ticked) {
+			for (cb in StageTimer._next_callbacks)
+				StageTimer._callbacks.push(cb);
+			StageTimer._next_callbacks = [];
+		}
 		for (cb in StageTimer._callbacks)
 			cb();
+		// If a callback adds a callback, wait until all executed and add for next frame
+		for (cb in StageTimer._next_callbacks)
+			StageTimer._callbacks.push(cb);
+		StageTimer._next_callbacks = [];
 	},
+	_ticked: false,
+	_next_callbacks: [],
 	_callbacks: [],
 };
 
@@ -930,9 +1077,8 @@ var ButtonHandler = {
 			animation: "slowdown_select",
 			x: char.getX() + char.getEcbFootX(),
 			y: char.getY() + char.getEcbFootY(),
-			layer: VfxLayer.CHARACTERS_FRONT,
+			layer: VfxLayer.FOREGROUND_EFFECTS,
 		}));
-		self.getForegroundEffectsContainer().addChild(ButtonHandler._curr_dialogue.getViewRootContainer());
 		ButtonHandler._curr_dialogue.playFrame(ButtonHandler._next_option_idx + 1);
 		ButtonHandler._curr_dialogue.pause();
 		StageTimer.addCallback(ButtonHandler._updateDialogue);
@@ -1115,9 +1261,8 @@ var ElevatorHandler = {
 			animation: "elevator_select",
 			x: char.getX() + char.getEcbFootX(),
 			y: char.getY() + char.getEcbFootY(),
-			layer: VfxLayer.CHARACTERS_FRONT,
+			layer: VfxLayer.FOREGROUND_EFFECTS,
 		}));
-		self.getForegroundEffectsContainer().addChild(ElevatorHandler._curr_dialogue.getViewRootContainer());
 		ElevatorHandler._curr_dialogue.playFrame(ElevatorHandler._next_target + 1);
 		ElevatorHandler._curr_dialogue.pause();
 	},
@@ -1431,6 +1576,930 @@ var TurretHandler = {
 	_turret: null,
 };
 
+var FrameDataModule = {
+    TRACKED_BOX_TYPES: [
+		CollisionBoxType.HIT,
+		CollisionBoxType.GRAB,
+		CollisionBoxType.REFLECT,
+		CollisionBoxType.COUNTER,
+		CollisionBoxType.ABSORB,
+	],
+	MAX_HISTORY: 20,
+    _dummy: null,
+    _char: null,
+    _has_move_listeners: false,
+    _has_dummy_listener: new IntMap(),
+    _box_listeners: new IntMap(),
+    _whitelist: null,
+    _blacklist: null,
+	_prev_objs: [],
+	_objs: [],
+	_objs_set: false, 
+	_data_history: new IntMap(),
+	// Stats -> Character -> Move  -> Boxes
+
+    init: function(?whitelist, ?blacklist) {
+        FrameDataModule._dummy = match.createProjectile(self.getResource().getContent("boxviewerDummy"));
+		StageGlobals.entities.push(FrameDataModule._dummy);
+        FrameDataModule._whitelist = whitelist != null ? whitelist : [];
+        FrameDataModule._blacklist = blacklist != null ? blacklist : [];
+        StageTimer.addCallback(FrameDataModule._tick);
+    },
+    addBoxListener: function(obj, listener_cb) {
+		var uid = obj.getUid();
+		if (!FrameDataModule._box_listeners.exists(uid)) {
+			FrameDataModule._box_listeners.set(uid, []);
+		}
+		FrameDataModule._box_listeners.get(uid).push(listener_cb);
+		FrameDataModule._tryAddDummyListener(obj);
+		// FrameDataModule.checkForBoxes(obj, [listener_cb]);
+        return listener_cb;
+    },
+    removeBoxListener: function (obj, listener_cb) {
+		var uid = obj.getUid();
+		var removed = false;
+        if (FrameDataModule._box_listeners.exists(uid)) {
+			var listeners = FrameDataModule._box_listeners.get(uid);
+			removed = listeners.remove(listener_cb);
+			if (listeners.length == 0) FrameDataModule._box_listeners.remove(uid);
+		}
+		return removed;
+    },
+    getEntities: function() {
+		if (!FrameDataModule._objs_set) {
+			FrameDataModule._prev_objs = FrameDataModule._objs;
+			FrameDataModule._objs = match.getCharacters().concat(match.getProjectiles()).filter(function(e){
+				return !FrameDataModule._blacklist.contains(e);
+			}).concat(FrameDataModule._whitelist);
+			FrameDataModule._objs_set = true;
+		}
+		return FrameDataModule._objs;
+    },
+	getCreatedEntities: function() {
+		var objs = FrameDataModule.getEntities();
+		var new_objs = objs.filter(function(obj) {
+			return !FrameDataModule._prev_objs.contains(obj);
+		});
+		return new_objs;
+	},
+	checkForBoxes: function (obj: GameObject, cbs: Array<Function>)  {
+		for (box_type in FrameDataModule.TRACKED_BOX_TYPES) {
+			var boxes = obj.getCollisionBoxes(box_type);
+			if (boxes == null || boxes.length == 0) continue;
+			for (cb in cbs) {
+				cb(obj, box_type);
+			}
+		}
+	},
+	recordStats: function(char, stats) {
+		var port = char.getPlayerConfig().port;
+		var move_history = FrameDataModule._data_history.get(port);
+		move_history.push(FrameDataModule._flattenMoveStats(stats));
+		move_history.splice(0, move_history.length - FrameDataModule.MAX_HISTORY);
+		FrameDataHud.updateRender();
+	},
+	getStats: function(char, index) {
+		var port = char.getPlayerConfig().port;
+		var move_stats = FrameDataModule._data_history.get(port);
+		if (index.move >= move_stats.length) return Util.throwError("Trying to access move @ index=" + index.move + " but there are only " + move_stats.length + " moves recorded");
+		var box_stats = move_stats[move_stats.length - index.move - 1]; // last recorded move will be at the end so flip index
+		if (index.box >= box_stats.length) return Util.throwError("Trying to access box @ index=" + index.box + " but there are only " + box_stats.length + " moves recorded");
+		return box_stats[index.box];
+	},
+	_flattenMoveStats: function(move_info) {
+		var flattened_stats = [];
+		function indexOf(a, test) {
+			return a.map((e) -> "" + e).indexOf("" + test);
+		}
+
+		for (obj_info in move_info) {
+			var box_stats = obj_info.box_stats;
+			var flat_stats = [];
+			var flat_active = [];
+			for (attack_id in box_stats.keys()) {
+				var attack_info = box_stats.get(attack_id);
+				for (box_type in attack_info.keys()) {
+					var box_info = attack_info.get(box_type);
+					for (index in box_info.stats.keys()) {
+						var stats = box_info.stats.get(index);
+						var seen_frames = box_info.active_frames.get(index);
+						var stats_summary = {
+							box_type: box_type,
+							stats: stats
+						};
+						if (stats != null) stats_summary.index = index;
+						var other_box = indexOf(flat_stats, stats_summary);
+						if (other_box == -1) {
+							flat_stats.push(stats_summary);
+							flat_active.push([frames_to_string(seen_frames)]);
+						} else {
+							flat_active[other_box].push(frames_to_string(seen_frames));
+						}
+					}
+				}
+			}
+			var comp = (x, y) -> x == y ? 0 : (x < y ? -1 : 1);
+			var parseInt = function (s: String) {
+				var i = 0;
+				for (c in 0...s.length) {
+					var d = s.charCodeAt(c) - "0".charCodeAt(0);
+					if (d < 0 || d > 9) break;
+					i *= 10;
+					i += d;
+				}
+				return i;
+			}
+			var comp_list = function (x, y) {
+				if (x.length != y.length) return comp(x.length, y.length);
+				for (i in 0...x.length) {
+					if (x[i] != y[i]) return comp(x[i], y[i]);
+				}
+				return 0;
+			};
+			for (i in 0...flat_stats.length) {
+				flat_active[i].sort((x, y) -> comp(parseInt(x), parseInt(y)));
+				flat_stats[i].info = obj_info;
+				flat_stats[i].frames = flat_active[i].join(",");
+			}
+			flat_stats.sort(function (x, y) {
+				// sort by box type, then frame, then index
+				x = [x.box_type, parseInt(x.frames), x.index == null ? 0 : x.index];
+				y = [y.box_type, parseInt(y.frames), y.index == null ? 0 : y.index];
+				return comp_list(x, y);
+			});
+			if (flat_stats.length == 0) {
+				flat_stats.push({
+					info: obj_info,
+				});
+			}
+			flattened_stats = flattened_stats.concat(flat_stats);
+		}
+		return flattened_stats;
+	},
+	getRelativeBox: function(char, index, offset) {
+		var port = char.getPlayerConfig().port;
+
+		var move_stats = FrameDataModule._data_history.get(port);
+		if (index.move >= move_stats.length) return Util.throwError("Trying to access move @ index=" + index.move + " but there are only " + move_stats.length + " moves recorded");
+		var box_stats = move_stats[move_stats.length - index.move - 1]; // last recorded move will be at the end so flip index
+		var next_box = index.box + offset;
+		return (next_box >= 0 && next_box < box_stats.length) ? {move: index.move, box: next_box} : null;
+	},
+	getRelativeMove: function(char, index, offset){
+		var port = char.getPlayerConfig().port;
+
+		var move_stats = FrameDataModule._data_history.get(port);
+		var next_move = index.move + offset;
+		return (next_move >=0 && next_move < move_stats.length) ? {move: next_move, box: 0} : null;
+	},
+
+
+    _tick: function() {
+        FrameDataModule._tryAddMoveListeners();
+        var entities = FrameDataModule.getEntities();
+        for (obj in entities) {
+            FrameDataModule._tryAddDummyListener(obj);
+            // TODO: Should probably make listeners keyed on entity type or smtg so we don't actually need to go through all of them for each box
+			var listeners = FrameDataModule._getListenersFor(obj);
+			if (listeners.length > 0) FrameDataModule.checkForBoxes(obj, listeners);
+        }
+		FrameDataModule._objs_set = false;
+    },
+	_getListenersFor: function(obj: GameObject) {
+		return FrameDataModule._box_listeners.exists(obj.getUid()) ? FrameDataModule._box_listeners.get(obj.getUid()) : [];
+	},
+    _tryAddDummyListener: function(obj: GameObject) {
+        if (FrameDataModule._has_dummy_listener.exists(obj.getUid())) return;
+        var dummy = FrameDataModule._dummy;
+        obj.addEventListener(GameObjectEvent.HITBOX_CONNECTED, function(e: GameObjectEvent){
+            if (e.data.foe != dummy) return;
+            for (listener_cb in FrameDataModule._getListenersFor(obj)) {
+                listener_cb(obj, CollisionBoxType.HIT, e.data.hitboxStats);
+            }
+        }, {persistent: true});
+		obj.addEventListener(GameObjectEvent.HIT_DEALT, function(e: GameObjectEvent){
+  			for (listener_cb in FrameDataModule._getListenersFor(obj)) {
+                listener_cb(obj, CollisionBoxType.HIT, e.data.hitboxStats);
+            }
+		}, {persistent: true});
+        FrameDataModule._has_dummy_listener.set(obj.getUid(), true);
+    },
+    _tryAddMoveListeners: function() {
+        if (!FrameDataModule._has_move_listeners) {
+            for (char in match.getCharacters()) {
+                char.addEventListener(EntityEvent.STATE_CHANGE, function(e: EntityEvent){
+                    MoveTracker.create(char);
+                }, {persistent: true});
+				FrameDataModule._data_history.set(char.getPlayerConfig().port, []);
+            }
+            FrameDataModule._has_move_listeners = true;
+        }
+    },
+};
+
+var FrameDataHud = {
+	MIN_OPACITY: 0.3,
+	FADE_RATE: 0.05,
+
+	_container: null,
+	_bg: null,
+	_scroll_bg: null,
+	_nav_sprites: new StringMap(),
+	_data_index: {
+		move: 0,
+		box: 0
+	},
+	_paused: false,
+
+
+	init: function() {
+		FrameDataHud._buildBg();
+		StageTimer.addCallback(FrameDataHud._tick);
+	},
+
+	updateRender: function() {
+		FrameDataHud._data_index.move = 0; // reset index
+		FrameDataHud._data_index.box = 0;
+		FrameDataHud._renderMoveInfo();
+	},
+	_updateMenu: function() {
+		var char = Util.getP1();
+		var has_next_move = FrameDataModule.getRelativeMove(char, FrameDataHud._data_index, -1) != null;
+		var has_prev_move = FrameDataModule.getRelativeMove(char, FrameDataHud._data_index, 1) != null;
+		var has_next_box = FrameDataModule.getRelativeBox(char, FrameDataHud._data_index, 1) != null;
+		var has_prev_box = FrameDataModule.getRelativeBox(char, FrameDataHud._data_index, -1) != null;
+		FrameDataHud._nav_sprites.get("next_move").alpha = has_next_move ? 1 : 0.5;
+		FrameDataHud._nav_sprites.get("prev_move").alpha = has_prev_move ? 1 : 0.5;
+		FrameDataHud._nav_sprites.get("next_box").alpha = has_next_box ? 1 : 0.5;
+		FrameDataHud._nav_sprites.get("prev_box").alpha = has_prev_box ? 1 : 0.5;
+
+
+	},
+	_renderMoveInfo:  function(){
+		var move_info = FrameDataModule.getStats(Util.getP1(), FrameDataHud._data_index);
+		var name = move_info.info.name;
+		var total_frames = move_info.info.total_frames;
+		var endlag = move_info.info.endlag;
+		var landing_frames = move_info.info.landing_frames;
+		var effective_endlag = move_info.info.effective_endlag;
+		var index = move_info.index;
+		var box_type = move_info.box_type;
+		var frames = move_info.frames;
+		var stats = move_info.stats;
+		var has_stats = stats != null;
+
+		if (FrameDataHud._text != null) {
+			FrameDataHud._container.removeChild(FrameDataHud._text);
+			FrameDataHud._text.dispose();
+		}
+		var main_container = Container.create();
+		FrameDataHud._text = main_container;
+		var bg = FrameDataHud._bg;
+
+		// Other designs 
+		// -> All small, blue title, white value
+		// -> No BG or scroll, Title above scroll bg
+		// -> sbh3 title, edit undo value + color
+
+		// TODO:
+		// - strong attacks are broken
+		// - Should group states and give group a name
+		// - should tie anim to state and not render anim if matches default name
+		// - separate jab startups ()
+		// - name should be (entity #XX) STATE: anim :: STATE/anim are entry, hitbox_anim/entity are omitted if matches state or source character respectively
+		// - should technically have: anim endlag, state edlag (for initial state), overall endlag (includes landing lag and such), effective endlag (includes other entities)
+		// Missing stats: 
+		// - attack ratio (should be with kb)
+		// - shield dmg/stun mult (should be with hitstop)
+
+		var WHITE = TextContainer.COLORS.WHITE;
+		var move_name = TextContainer.create(name, {color: WHITE, font_size: TextContainer.BASE_FONT_SIZE * 1.5});
+		move_name.getContainer().y = bg.y - bg.height + 6;
+		move_name.getContainer().x = bg.x - bg.width/2 + 20;
+		main_container.addChild(move_name.getContainer());
+
+		function getInfoBox(title, value, ?params) {
+			params = Util.valueOr(params, {});
+			var lower_case = Util.valueOr(params.lower_case, false);
+			var use_brackets = Util.valueOr(params.use_brackets, false) && !lower_case;
+			title = use_brackets ? title + "(" : title; 
+			title = lower_case ? title + ": " : title;
+			var content = Container.create();
+			var title_box = TextContainer.create(title, {color: WHITE, font: lower_case ? "sbh3" : "editundo"});
+			content.addChild(title_box.getContainer());
+			var value_box = TextContainer.create(value, {color: WHITE, font: "sbh3"});
+			value_box.getContainer().x = title_box.getContainer().width + (use_brackets || lower_case ? 1 : 4);
+			value_box.getContainer().y = lower_case ? 0 : 2; 
+			content.addChild(value_box.getContainer());
+			if (use_brackets) {
+				var title_box2 = TextContainer.create(")", {color: WHITE, font: "editundo"});
+				title_box2.getContainer().x = value_box.getContainer().x + value_box.getContainer().width + 1;
+				content.addChild(title_box2.getContainer());
+			}
+			return {
+				getContainer: () -> content,
+				getValueText: () -> value_box,
+			};
+		}
+
+		var active_row = Container.create();
+		var boxes = [];
+		if (frames != null) {
+			var frames_box = getInfoBox("Active Frames", frames);
+			boxes.push(frames_box);
+		}
+		if (box_type != null) {
+			var type_box = getInfoBox("| " + Util.collisionBoxTypeToString(box_type), "");
+			boxes.push(type_box);
+		}
+		if (has_stats) {
+			var index_box = getInfoBox("| Index", "" + index);
+			boxes.push(index_box);
+		}
+		var x_offset = 0;
+		for (box in boxes) {
+			active_row.addChild(box.getContainer());
+			box.getContainer().x = x_offset;
+			x_offset += box.getContainer().width + 5;
+		}
+		active_row.x = move_name.getContainer().x + (boxes.length > 0 ? 4 : 0);
+		active_row.y = move_name.getContainer().y + move_name.getContainer().height + 1;
+		main_container.addChild(active_row);
+		var last_row = active_row;
+		if (has_stats) {
+
+			var kb_row = Container.create();
+			var dmg_str = "" + stats.rawDamage;
+			if (stats.metadata != null &&  stats.metadata.chargeable != null && stats.metadata.chargeable) {
+				dmg_str += " (x" + stats.maxChargeDamageMultiplier + " @ max charge)";
+			}
+			var dmg_box = getInfoBox("Damage", dmg_str);
+			var bkb_box = getInfoBox("BKB", "" + stats.baseKnockback);
+			var kbg_box = getInfoBox("KBG", "" + stats.knockbackGrowth);
+			var angle_box = getInfoBox("Angle", Util.angleToString(stats.rawAngle));
+			var x_offset = 0;
+			for (box in [dmg_box, bkb_box, kbg_box, angle_box]) {
+				kb_row.addChild(box.getContainer());
+				box.getContainer().x = x_offset;
+				x_offset += box.getContainer().width + 10;
+			}
+			kb_row.x = active_row.x + 4;
+			kb_row.y = active_row.y + active_row.height; // No Spacing needed bc of space needed for letters like g (which don't happen)
+			main_container.addChild(kb_row);
+			
+			var hit_prop_row = Container.create();
+			var hitstop_str = "" + stats.hitstop;
+			if (stats.hitstop < 0) {
+				hitstop_str = "AUTO";
+				// Is this only when auto or always?
+				if (stats.hitstopOffset != 0) {
+					hitstop_str += ", Offset=" + stats.hitstopOffset;
+				}
+				if (stats.hitstopMultiplier != 1) {
+					hitstop_str += ", Offset=" + stats.hitstopMultiplier;
+				}
+			}
+			if (stats.hitstopNudgeMultiplier != 1) {
+				hitstop_str += ", Nudge Mult=" + stats.hitstopNudgeMultiplier;
+			}
+			var hitstop_box = getInfoBox("Hitstop", hitstop_str, {use_brackets: true});
+
+			var shitstop_str = "" + stats.selfHitstop;
+			if (stats.selfHitstop < 0) {
+				shitstop_str = "AUTO";
+				// Is this only when auto or always?
+				if (stats.selfHitstopOffset != 0) {
+					shitstop_str += ", Offset=" + stats.selfHitstopOffset;
+				}
+			}
+			var shitstop_box = getInfoBox("Self Hitstop", shitstop_str, {use_brackets: true});
+			var hitstun_str = "" + stats.hitstun;
+			if (stats.hitstun < 0) {
+				hitstun_str = "AUTO";
+				if (stats.hitstun != -1) {
+					hitstun_str += ", Mult=" + Math.abs(stats.hitstun);
+				}
+			}
+			var hitstun_box = getInfoBox("Hitstun", hitstun_str, {use_brackets: true});
+			var rendered_hitstun = false;
+			var boxes = [hitstop_box, shitstop_box];
+			var box_width = 0;
+			for (box in boxes) {
+				box_width += box.getValueText().getContainer().width;
+			}
+			if (box_width + hitstun_box.getValueText().getContainer().width <= 196) {
+				boxes.push(hitstun_box);
+				rendered_hitstun = true;
+			} else {
+				hitstun_box = getInfoBox("Hitstun", hitstun_str.toLowerCase(), {use_brackets: true, lower_case: true});
+			}
+			var x_offset = 0;
+			for (box in boxes) {
+				hit_prop_row.addChild(box.getContainer());
+				box.getContainer().x = x_offset;
+				x_offset += box.getContainer().width + 10;
+			}
+			Engine.log("value sizes=" + [hitstop_box, shitstop_box.getValueText().getContainer().width, ]);
+			hit_prop_row.x = kb_row.x + 4;
+			hit_prop_row.y = kb_row.y + kb_row.height + 3; // No Spacing needed bc of space needed for letters like g (which don't happen)
+			main_container.addChild(hit_prop_row);
+
+			var extra_prop_row = Container.create();
+			var limb_box = getInfoBox("Limb", stats.limb == null ? "N/A" : AttackLimb.constToString(stats.limb));
+			var element_box = getInfoBox("Element", stats.element == null ? "N/A" : AttackElement.constToString(stats.element));
+			var strength_box = getInfoBox("Strength", stats.attackStrength == null ? "N/A" : AttackStrength.constToString(stats.attackStrength));
+			var shieldable_box = getInfoBox("Shieldable", stats.shieldable ? "Y" : "N");
+			var reverse_box = getInfoBox("Reverse", stats.reverse ? "Y" : "N");
+			var x_offset = 0;
+			for (box in [limb_box, element_box, strength_box, shieldable_box, reverse_box]) {
+				extra_prop_row.addChild(box.getContainer());
+				box.getContainer().x = x_offset;
+				x_offset += box.getContainer().width + 10;
+			}
+			extra_prop_row.x = hit_prop_row.x + 4;
+			extra_prop_row.y = hit_prop_row.y + hit_prop_row.height; // No Spacing needed bc of space needed for letters like g (which don't happen)
+			main_container.addChild(extra_prop_row);
+
+			var extra_prop2_row = Container.create();
+			var boxes = [];
+			var tumble_box = getInfoBox("Tumble", Util.tumbleTypeToString(stats.tumbleType), {lower_case: true});
+			var di_box = getInfoBox("DI", stats.directionalInfluence ? "Y" : "N", {lower_case: true});
+			var flinch_box = getInfoBox("Flinch", stats.flinch ? "Y" : "N", {lower_case: true});
+			boxes = [tumble_box, di_box, flinch_box];
+			if (stats.knockbackCap >= 0) {
+				var kb_cap_box = getInfoBox("KB Cap", "" + stats.knockbackCap, {lower_case: true});
+				boxes.push(kb_cap_box);
+			}
+			var reversible_box = getInfoBox("Reversible", stats.reversibleAngle ? "Y" : "N", {lower_case: true});
+			var stack_kb_box = getInfoBox("Stack KB", stats.stackKnockback ? "Y" : "N", {lower_case: true});
+			boxes = boxes.concat([reversible_box, stack_kb_box]);
+			if (!rendered_hitstun) {
+				boxes.push(hitstun_box);
+			}
+			if (stats.metadata != null && stats.metadata.projectile != null && stats.metadata.projectile) {
+				var reflectable_box = getInfoBox("Reflect", stats.reflectable ? "Y" : "N", {lower_case: true});
+				var absorbable_box = getInfoBox("Absorb", stats.absorbable ? "Y" : "N", {lower_case: true});
+				boxes = boxes.concat([reflectable_box, absorbable_box]);
+			}
+			var x_offset = 0;
+			for (box in boxes) {
+				// Engine.log(box);
+				extra_prop2_row.addChild(box.getContainer());
+				box.getContainer().x = x_offset;
+				x_offset += box.getContainer().width + 8;
+			}
+			extra_prop2_row.x = extra_prop_row.x + 4;
+			extra_prop2_row.y = extra_prop_row.y + extra_prop_row.height + 4; // idk why need spacing here
+			main_container.addChild(extra_prop2_row);
+			last_row = extra_prop2_row;
+		}
+
+		var frame_data_summary_row = Container.create();
+		var boxes = [];
+		if (total_frames != null) {
+			boxes.push(getInfoBox("Total Frames", "" + total_frames));
+		}
+		if (landing_frames != null) {
+			boxes.push(getInfoBox("| Landing Frames", "" + landing_frames));
+		}
+		if (endlag != null) {
+			boxes.push(getInfoBox("| Endlag", "" + endlag));
+		}
+		if (effective_endlag != null) {
+			boxes.push(getInfoBox("| Effective Endlag", "" + effective_endlag));
+		}
+		var x_offset = 0;
+		for (box in boxes) {
+			frame_data_summary_row.addChild(box.getContainer());
+			box.getContainer().x = x_offset;
+			x_offset += box.getContainer().width + 4;
+		}
+		frame_data_summary_row.x = last_row.x + 4;
+		frame_data_summary_row.y = last_row.y + last_row.height; // idk why need spacing here
+		main_container.addChild(frame_data_summary_row);
+		FrameDataHud._container.addChild(main_container);
+		FrameDataHud._updateMenu();
+	},
+	
+	_buildBg: function() {
+		var viewport = new Rectangle(0, 0, camera.getViewportWidth(), camera.getViewportHeight());
+		var top_hud = GraphicsSettings.damageHudPosition == "top";
+		var main_container = Container.create();
+		FrameDataHud._container = main_container;
+		camera.getForegroundContainer().addChild(main_container);
+
+		var sprites = Sprite.createBatch(
+			2,
+			self.getResource().getContent("boxviewerVfx"),
+			"frame_data_display",
+			viewport.width/2,
+			0,
+			main_container
+		);
+
+		var bg = sprites[1];
+		bg.goToFrameLabel("background");
+		var scroll_bg = sprites[0];
+		scroll_bg.goToFrameLabel("scroll_background");
+		FrameDataHud._bg = bg;
+		FrameDataHud._scroll_bg = scroll_bg;
+
+		var hud_height = bg.height;
+		var hud_width = viewport.width;
+		main_container.x = 0;
+		main_container.y = viewport.bottom;
+		if (!top_hud) {
+			main_container.y = viewport.top + hud_height;
+			scroll_bg.y = - hud_height + scroll_bg.height;
+		}
+
+		var frame_data_nav = Container.create();
+		var buttons = ["prev_box", "next_box", "prev_move", "next_move", "pause"]; 
+		sprites = Sprite.createBatch(
+			buttons.length,
+			self.getResource().getContent("boxviewerVfx"),
+			"frame_data_display",
+			0,
+			0,
+			frame_data_nav
+		);
+
+		var x = 0;
+		for (button_idx in 0...buttons.length) {
+			var sprite = sprites[button_idx];
+			sprite.goToFrameLabel(buttons[button_idx]);
+			sprite.x = x;
+			x += sprite.width + 17;
+			FrameDataHud._nav_sprites.set(buttons[button_idx], sprite);
+		}
+
+		main_container.addChild(frame_data_nav);
+		frame_data_nav.x = main_container.width - frame_data_nav.width - 117;
+		frame_data_nav.y = 0;
+
+	},
+	_tick: function() {
+		FrameDataHud._hideOnObscure();
+		if (!FrameDataHud._paused) {
+			var index = FrameDataHud._data_index;
+			var char = Util.getP1();
+			var pressedControls: ControlsObject = char.getPressedControls();
+			var heldControls: ControlsObject = char.getHeldControls();
+			if (!pressedControls.EMOTE && !heldControls.EMOTE) return;
+			var allow_held = pressedControls.EMOTE;
+			var next_index = null;
+			if ((allow_held && heldControls.RIGHT) || pressedControls.RIGHT) {
+				next_index = FrameDataModule.getRelativeMove(char, index, -1); // For move, increasing goes backwards in time, so forward is negative
+			}
+			else if ((allow_held && heldControls.LEFT) || pressedControls.LEFT) {
+				next_index = FrameDataModule.getRelativeMove(char, index, 1);
+			}
+			else if ((allow_held && heldControls.DOWN) || pressedControls.DOWN) {
+				next_index = FrameDataModule.getRelativeBox(char, index, 1);
+			}
+			else if ((allow_held && heldControls.UP) || pressedControls.UP) {
+				next_index = FrameDataModule.getRelativeBox(char, index, -1);
+			}
+			if (next_index != null) {
+				FrameDataHud._data_index = next_index;
+				FrameDataHud._renderMoveInfo();
+			}
+		}
+	},
+	_hideOnObscure: function() {
+		var bg = FrameDataHud._bg;
+		var scroll_bg = FrameDataHud._scroll_bg;
+		var main_container = FrameDataHud._container;
+
+		var camera_width = camera.getViewportWidth();
+		var camera_height = camera.getViewportHeight();
+		var camera_top = camera.getY() - camera_height/2;
+		var camera_left = camera.getX() - camera_width/2;
+
+		var bg_box = new Rectangle(
+			(bg.x - bg.width/2 + main_container.x) * camera.getZoomScaleX() + camera_left,
+			(bg.y - bg.height + main_container.y) * camera.getZoomScaleY() + camera_top,
+			bg.width * camera.getZoomScaleX(),
+			bg.height * camera.getZoomScaleY()
+		);
+		var scroll_bg_box = new Rectangle(
+			(scroll_bg.x - scroll_bg.width/2 + main_container.x)*camera.getZoomScaleX() + camera_left,
+			(scroll_bg.y - scroll_bg.height + main_container.y) * camera.getZoomScaleY() + camera_top,
+			scroll_bg.width * camera.getZoomScaleX(),
+			scroll_bg.height * camera.getZoomScaleY()
+		);
+		var has_overlap = false;
+		for (char in match.getCharacters()) {
+			var c: Character = char;
+			var camera_box = c.getEcbCollisionBox().rect.clone();
+			var width_diff =  c.getViewRootContainer().width - camera_box.width;
+			var height_diff =  c.getViewRootContainer().height - camera_box.height;
+			camera_box.x += c.getX() - width_diff/2;
+			camera_box.y += c.getY() - height_diff/2;
+			camera_box.width += width_diff;
+			camera_box.height += height_diff;
+			if (camera_box.intersects(bg_box) || camera_box.intersects(scroll_bg_box)) {
+				has_overlap = true;
+				break;
+			}
+		}
+		var alpha = main_container.alpha;
+		var new_alpha = alpha;
+		if (has_overlap) {
+			new_alpha = Math.max(alpha - FrameDataHud.FADE_RATE, FrameDataHud.MIN_OPACITY);
+		} else {
+			new_alpha = Math.min(alpha + FrameDataHud.FADE_RATE, 1);
+		}
+		if (new_alpha != alpha) main_container.alpha = new_alpha;
+	}
+};
+
+var MoveTracker = {
+	UNTRACKED_STATES: [CState.LAND, CState.FALL_SPECIAL], 
+    create: function(char: Character) {
+        if (!MoveTracker.canTrack(char)) return null;
+        var me;
+        me = {
+            init: function() {
+                // Count frames until done
+                StageTimer.addCallback(me._tick);
+				me._init_state = [char.getPreviousState(), char.getState()];
+				char.addEventListener(EntityEvent.STATE_CHANGE, me._doneHandler, {persistent: true});
+                FrameDataModule.addBoxListener(char, me._seenBox);
+				me._trackSubObj();
+            },
+            _clearListeners: function() {
+                StageTimer.removeCallback(me._tick);
+                char.removeEventListener(EntityEvent.STATE_CHANGE, me._doneHandler);
+                FrameDataModule.removeBoxListener(char, me._seenBox);
+             },
+            _tick: function() { me._trackSubObj(); },
+            _doneHandler: function(e: EntityEvent) {
+				// sometimes if add this during a state change it will get called again, but not always ....
+				if (me._init_state != null && me._init_state[0] == e.data.fromState && me._init_state[1] ==  e.data.toState) {
+					me._init_state = null;
+					return;
+				}
+				if (e.data.toState == CState.LAND)
+					me._land_frame = match.getElapsedFrames();
+		
+                if (MoveTracker.UNTRACKED_STATES.contains(e.data.toState))
+					return;
+				me._clearListeners();
+				me._in_move = false;
+				me._last_frame = Math.max(me._last_frame, match.getElapsedFrames() - 1); //
+				me.tryFinishTracking();
+            },
+            _seenBox: function(obj: GameObject, box_type: CollisionBoxType, ?hb: HitboxStats) {
+				// Structure will be:
+                // attackId => box_type => stats/activeframes (per index)
+                // Create a new info struct if necessary
+				// NOTE: Take in raw hitbox data (with no stats), can always add hitbox stats later if box is seen
+                var animAttackId = obj.getAnimationStat("attackId");
+                var attackId = hb != null ? hb.attackId : animAttackId; 
+                if (attackId != animAttackId) Util.throwError("Found an anim attackId=" + animAttackId + " that doesn't the hitbox attackId=" + attackId);
+                var index = hb != null ? hb.index : 0; // just use layer 0 for other boxes, could use depth here if desired
+                if (!me._box_info.exists(attackId)) {
+                    me._box_info.set(attackId, new IntMap());
+                }
+                var attack_info = me._box_info.get(attackId);
+                if (!attack_info.exists(box_type)) {
+                    attack_info.set(box_type, {
+                        stats: new IntMap(),
+                        active_frames: new IntMap(),
+                    });
+                }
+                var box_info = attack_info.get(box_type);
+                if (!box_info.stats.exists(index) || box_info.stats.get(index) == null) {
+                    box_info.stats.set(index, hb);
+					if (obj.getAnimationStat("storedChargePercent") != 0) {
+						hb.metadata = {chargeable: true};
+					}
+                }
+                if (!box_info.active_frames.exists(index)) {
+                    box_info.active_frames.set(index, []);
+				}
+				var frame = me.getFrame() - (hb == null ? 1 : 0); // box detection code happens before `update` but after TICK_START so will be off by 1
+				frame = Math.max(frame, 1);
+                box_info.active_frames.get(index).push(frame);
+            },
+            _trackSubObj: function() {
+                var objs = FrameDataModule.getCreatedEntities();
+                var sub_objs = objs.filter(function(obj){
+                    return obj.getOwner() == char && obj != char && !me._prev_objs.contains(obj);
+                });
+                for (obj in sub_objs) me.addSubTracker(obj);
+                me._prev_objs = me._prev_objs.concat(sub_objs);
+            },
+            addSubTracker: function(obj: GameObject) {
+                var sub_tracker = SubMoveTracker.create(obj, me);
+				me._active_trackers.push(sub_tracker);
+                me._trackers.push(sub_tracker);
+            },
+
+            tryFinishTracking: function(?tracker) {
+                if (tracker != null) me._active_trackers.remove(tracker);
+                if (me._active_trackers.length > 0 || me._in_move) return;
+                me.dumpAllInfo();
+                me._trackers.splice(0, me._trackers.length);
+            },
+            getFrame: function() { return (me._in_move ? match.getElapsedFrames() : me._last_frame) - me._start_frame + 1; },
+			// how many frames since this move started (even if move is already completed)
+            getRelFrame: function() { return match.getElapsedFrames() - me._start_frame + 1; },
+            dumpAllInfo: function() {
+
+                var last_active = null;
+                var effective_last_active = null;
+                for (attack_id in me._box_info.keys()) {
+                    var attack_info = me._box_info.get(attack_id);
+                    for (box_type in attack_info.keys()) {
+                        var box_info = attack_info.get(box_type);
+                        for (index in box_info.stats.keys()) {
+                            var seen_frames = box_info.active_frames.get(index);
+                            for (frame in seen_frames) {
+                                last_active = last_active == null ? 1 : last_active;
+                                last_active = Math.max(last_active, frame);
+                            }
+                        }
+                    }
+                }
+                effective_last_active = last_active;
+                var all_stats = [null];
+                for (tracker in me._trackers) {
+                    var sub_data = tracker.getData();
+					if (sub_data == null) continue;
+					effective_last_active = effective_last_active == null ? 1 : effective_last_active;
+					effective_last_active = Math.max(sub_data.last_active, effective_last_active);
+					all_stats.push(sub_data);
+                }
+                if (effective_last_active != null) {
+					var total_frames = me.getFrame();
+					var stats = {
+						name: me._name,
+						total_frames: total_frames,
+						endlag: total_frames - last_active,
+						box_stats: me._box_info,
+					};
+
+					if (last_active != effective_last_active) stats.effective_endlag = total_frames - effective_last_active;
+					if (me._land_frame != null) {
+						stats.landing_frames = total_frames - (me._land_frame - me._start_frame);
+						stats.endlag = Math.max(0, stats.endlag - stats.landing_frames); // Endlag may be less if there's landing hitboxes
+						stats.endlag = stats.endlag == 0 ? null : stats.endlag;
+						stats.total_frames = total_frames - stats.landing_frames;
+					}
+					// Don't show effective endlag if it's just endlag and/or landing frames
+					if (stats.effective_endlag == stats.landing_frames) stats.effective_endlag = null;
+					if (stats.effective_endlag == stats.endlag) stats.effective_endlag = null;
+					// Don't show endlag if it's basically all frames
+					if (stats.endlag == stats.total_frames) stats.endlag = null;
+					all_stats[0] = stats;
+
+					FrameDataModule.recordStats(char, all_stats);
+                }
+                
+            },
+            getName: function() { return me._name; },
+            numSubTrackers: function() { return me._trackers.length; },
+
+            _prev_objs: [],
+            _box_info: new IntMap(),
+            _trackers: [],
+            _active_trackers: [],
+            _start_frame: match.getElapsedFrames(),
+			_last_frame: match.getElapsedFrames(),
+			_land_frame: null,
+            _in_move: true,
+			_init_state: null,
+            _name: "P" + char.getPlayerConfig().port + " " + CState.constToString(char.getState()),
+        };
+        me.init();
+        return me;
+    },
+    canTrack: function(char: Character) {
+        return !MoveTracker.UNTRACKED_STATES.contains(char.getState()); // char.inStateGroup(CStateGroup.ATTACK);
+    },
+};
+
+var SubMoveTracker = {
+    create: function(tracked_obj, move_tracker) {
+        var obj_type_string = EntityType.constToString(tracked_obj.getType());
+        if (obj_type_string == "CUSTOM_GAME_OBJECT") obj_type_string = "ASSIST";
+        var me;
+        me = {
+            init: function() {
+				me._spawn_frame = move_tracker.getRelFrame();
+                StageTimer.addCallback(me._tick);
+                FrameDataModule.addBoxListener(tracked_obj, me._seenBox);
+				me._trackSubObj();
+            },
+            _clearListeners: function() {
+                StageTimer.removeCallback(me._tick);
+                FrameDataModule.removeBoxListener(tracked_obj, me._seenBox);
+             },
+            _tick: function() {
+                if (tracked_obj.isDisposed()) {
+                    me._clearListeners();
+                    move_tracker.tryFinishTracking(me);
+					me._in_move = false;
+					me._last_frame = match.getElapsedFrames() - 1;
+					return;
+                }
+				me._trackSubObj();
+            },
+            _seenBox: function(obj: GameObject, box_type: CollisionBoxType, ?hb: HitboxStats) {
+
+                // attackId => box_type => stats/activeframes (per index)
+                // Create a new info struct if necessary
+                // NOTE: Take in raw hitbox data (with no stats), can always add hitbox stats later if box is seen
+				var animAttackId = obj.getAnimationStat("attackId");
+                var attackId = hb != null ? hb.attackId : animAttackId; 
+                if (attackId != animAttackId) Util.throwError("Found an anim attackId=" + animAttackId + " that doesn't the hitbox attackId=" + attackId);
+                var index = hb != null ? hb.index : 0; // just use layer 0 for other boxes, could use depth here if desired
+
+                if (!me._box_info.exists(attackId)) {
+                    me._box_info.set(attackId, new IntMap());
+                }
+                var attack_info = me._box_info.get(attackId);
+
+                if (!attack_info.exists(box_type)) {
+                    attack_info.set(box_type, {
+                        stats: new IntMap(),
+                        active_frames: new IntMap(),
+                    });
+                }
+                var box_info = attack_info.get(box_type);
+
+                if (!box_info.stats.exists(index) || box_info.stats.get(index) == null) {
+                    box_info.stats.set(index, hb);
+					if (obj.getType() == EntityType.PROJECTILE) {
+						hb.metadata = {projectile: true};
+					}
+                }
+                if (!box_info.active_frames.exists(index)) {
+                    box_info.active_frames.set(index, []);
+                }
+				var frame = me.getFrame() - (hb == null ? 1 : 0); // box detection code happens before `update` but after TICK_START so will be off by 1
+                box_info.active_frames.get(index).push(frame);
+            },
+            _trackSubObj: function() {
+                // Recursive but only for non-projectiles (assists)
+                var objs = FrameDataModule.getCreatedEntities();
+                var sub_objs = objs.filter(function(obj){
+                    return obj.getOwner() == tracked_obj && obj != tracked_obj && !me._prev_objs.contains(obj);
+                });
+                for (obj in sub_objs) {
+                    if (tracked_obj.getType() == EntityType.PROJECTILE) {
+                        Util.throwError("Found sub obj for '" + me._name + "' but not tracking since it's a sub-obj of a projectile");
+                        continue;
+                    }
+                    move_tracker.addSubTracker(obj);
+                }
+                me._prev_objs = me._prev_objs.concat(sub_objs);
+            },
+            
+            getFrame: function() { return (me._in_move ? match.getElapsedFrames() : me._last_frame) - me._start_frame + me._spawn_frame; },
+            getData: function() {
+				var stats = null;
+                var last_active = null;
+                for (attack_id in me._box_info.keys()) {
+                    var attack_info = me._box_info.get(attack_id);
+                    for (box_type in attack_info.keys()) {
+                        var box_info = attack_info.get(box_type);
+                        for (index in box_info.stats.keys()) {
+                            var seen_frames = box_info.active_frames.get(index);
+                            for (frame in seen_frames) {
+                                last_active = last_active == null ? me._spawn_frame : last_active;
+                                last_active = Math.max(last_active, frame);
+                            }
+                        }
+                    }
+                }
+                if (last_active != null) {
+					var total_frames = me.getFrame() - me._spawn_frame + 1;
+					stats = {
+						name: me._name,
+						total_frames: total_frames,
+						endlag: me.getFrame() - last_active,
+						box_stats: me._box_info,
+						last_active: last_active,
+					};
+                }
+                return stats;
+            },
+			_prev_objs: [],
+            _box_info: new IntMap(),
+			_in_move: true,
+            _last_frame: match.getElapsedFrames(),
+            _start_frame: match.getElapsedFrames(),
+			_spawn_frame: 1,
+            _name: move_tracker.getName() + " *" + move_tracker.numSubTrackers() + "" + obj_type_string.charAt(0),
+        };
+        me.init();
+        return me;
+    },
+};
+
 function initialize() {
 	self.exports = {
 		exception_list: StageGlobals.entities
@@ -1473,6 +2542,8 @@ function initialize() {
 	AssistHandler.init(StageGlobals.assists);
 	TurretHandler.init(StageGlobals.entities);
 	StageVisibilityHandler.addCallback(TurretHandler.setVisible);
+	FrameDataModule.init(StageGlobals.assists, StageGlobals.entities);
+	FrameDataHud.init();
 }
 
 function update() {
